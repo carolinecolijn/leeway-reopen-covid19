@@ -31,8 +31,8 @@ states
 ## now explore how to make Rt from this
 
 # functional form
-Rt <- function(m, states, lag = 30) {
-  k1 <- m$pars["k1"]
+Rt <- function(model, states, lag = 30) {
+  k1 <- model$pars["k1"]
   lag <- 30
   lag_avail <- states$time - min(states$time)
   inds <- which(lag_avail >= lag)
@@ -59,7 +59,7 @@ Rt <- function(m, states, lag = 30) {
 
 states$Rt <- dplyr::group_by(states, .iteration) %>%
   dplyr::group_split() %>%
-  purrr::map_dfr(Rt, m = m) %>%
+  purrr::map_dfr(Rt, model = m, lag = 30) %>%
   dplyr::pull(Rt)
 
 ggplot(data = states, aes(x = time, y = testrt, group = .iteration)) +
