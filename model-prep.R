@@ -1,7 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(covidseir)
-if (packageVersion("covidseir") != "0.0.0.90022") {
+if (packageVersion("covidseir") != "0.0.0.9002") {
   stop("Please install the latest 'est-i0' version of the model:\n`devtools::install_github('seananderson/covidseir', ref = 'est-i0')`")
 }
 library(here)
