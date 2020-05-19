@@ -45,10 +45,14 @@ ggplot(dat, aes(day, adjust_cases)) +
 
 # Fit model -----------------------------------------------------------------
 
+# Example of visualizing a prior:
+# x <- seq(0, 10, length.out = 200)
+# plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
+
 fit <- covidseir::fit_seir(
   daily_cases = dat$adjust_cases,
   samp_frac_fixed = rep(0.2, nrow(dat)),
-  i0_prior = c(log(1), 1),
+  i0_prior = c(log(1), 0.5),
   start_decline_prior = c(log(12), 0.1),
   end_decline_prior = c(log(30), 0.1),
   N_pop = 14.5e6,
@@ -62,7 +66,7 @@ saveRDS(fit, here(this_folder, "data-generated/ON-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 
-proj <- covidseir::project_seir(fit, iter = 1:30, forecast_days = 30)
+proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
 proj_tidy <- covidseir::tidy_seir(proj)
 
 proj_tidy %>%
