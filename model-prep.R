@@ -1,0 +1,22 @@
+library(dplyr)
+library(ggplot2)
+library(covidseir)
+stopifnot(packageVersion("covidseir") == "0.0.0.9002")
+library(here)
+options(mc.cores = parallel::detectCores() / 2) # Stan parallel processing
+dir.create(here("selfIsolationModel/contact-ratios/data-generated/"),
+  showWarnings = FALSE)
+dir.create(here("selfIsolationModel/contact-ratios/figs/"),
+  showWarnings = FALSE)
+dir.create(here("selfIsolationModel/contact-ratios/data-raw/"),
+  showWarnings = FALSE)
+
+# For the threshold function; need to get it into the package:
+source(here("selfIsolationModel/bc-cdc-forecasts/functions.R"))
+
+this_folder <- "selfIsolationModel/contact-ratios/"
+
+make_traceplot <- function(fit) {
+  rstan::traceplot(fit$fit,
+    pars = c("R0", "i0", "f_s", "start_decline", "end_decline", "phi"))
+}
