@@ -43,6 +43,8 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, adjust_cases)) +
   geom_point()
 
+saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
+
 # Fit model -----------------------------------------------------------------
 
 # Example of visualizing a prior:
