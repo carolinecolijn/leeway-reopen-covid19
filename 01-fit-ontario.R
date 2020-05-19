@@ -42,6 +42,7 @@ dat[27:31,]$adjust_cases <- round(dat[27:31,]$cases + excess)
 dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, adjust_cases)) +
   geom_point()
+dat$daily_cases <- dat$adjust_cases
 
 saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 
@@ -52,7 +53,7 @@ saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
 fit <- covidseir::fit_seir(
-  daily_cases = dat$adjust_cases,
+  daily_cases = dat$daily_cases,
   samp_frac_fixed = rep(0.2, nrow(dat)),
   i0_prior = c(log(1), 0.5),
   start_decline_prior = c(log(12), 0.1),
