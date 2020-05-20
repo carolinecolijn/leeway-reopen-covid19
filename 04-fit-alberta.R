@@ -24,26 +24,45 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
 dat$date <- lubridate::dmy(dat$date_report)
-dat <- dplyr::filter(dat, province == "Ontario")
+dat <- dplyr::filter(dat, province == "Alberta")
 # View(dat)
 ggplot(dat, aes(date, cases)) +
   geom_point()
 # Pick a reasonable starting date:
-dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01"))
+dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01")) # COULD BE A FEW DAYS LATER 
 dat$day <- seq_len(nrow(dat))
 ggplot(dat, aes(date, cases)) +
   geom_point()
 
-# Try redistributing Apr 01 bump:
-dat$adjust_cases <- dat$cases
-excess <- (dat[32,]$cases - dat[33,]$cases)/5
-dat[32,]$adjust_cases <- dat[33,]$cases
-dat[27:31,]$adjust_cases <- round(dat[27:31,]$cases + excess)
-dat$value <- dat$adjust_cases # for plotting function
-ggplot(dat, aes(day, value)) +
-  geom_point()
+# Try removing at least some of Cargill, for a better picture of community transmission
+#Cargill info: Apr 13: 38 cases reported Apr 20: 484 cases in High River - 360 outbreak. 
+#Apr 22: Deena Henshaw says 440 outbk cases (presumably in total) 
+#Apr 20 Plant closed for 2 weeks 
+#May 4 plant re-opens
+#Total of 1560 cases, 949 confirmed. 
+#CONCLUSION: subtract up to 400 between Apr 13, Apr 22; subtract another 500 between Apr 22 and May 1. 
+cargill1= 36 # subtract these from april 14. maybe 2 of the 38 were index cases. who knows. someone must have been
+cargill2=400  # subtract these from apr 15-22 uniformly . length of that is 8 days
+cargill3=450 # subtract these from apr23-may 1 uniformly. length of this is 9 days
 
-saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
+dat$adjust_cases <- dat$cases # copy of cases 
+
+i14=which(dat$date==ymd("2020-04-14"))
+dat[i14,]$adjust_cases <- dat[i14,]$cases-cargill1 # subtract first bunch
+dat[i14+(1:8),]$adjust_cases <- dat[i14+(1:8),]$cases - round((1/8)*cargill2)
+dat[i14+8+(1:9),]$adjust_cases <- dat[i14+8+1:9,]$cases - round((1/9)*cargill3)
+
+dat$value <- dat$adjust_cases # for plotting function
+ggplot(dat, aes(day, adjust_cases)) +
+  geom_point()
+dat$daily_cases <- dat$adjust_cases
+
+# saveRDS(dat, here(this_folder, "data-generated/AB-dat.rds"))
+saveRDS(dat, "AB-dat.rds") # here() was not working; did not have data-generated; saved in contact-ratios/
+
+absampling = rep(0.2, nrow(dat))
+absampling[ which(dat$date==ymd("2020-03-23")):(i14-1)] = 0.25
+absampling[ i14:nrow(dat)] = 0.4
 
 # Fit model -----------------------------------------------------------------
 
@@ -52,20 +71,23 @@ saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
 fit <- covidseir::fit_seir(
-  daily_cases = dat$value,
-  samp_frac_fixed = rep(0.2, nrow(dat)),
+  daily_cases = dat$daily_cases,
+#  samp_frac_fixed = absampling,
+samp_frac_fixed = rep(0.2, nrow(dat)),
   i0_prior = c(log(1), 0.5),
-  start_decline_prior = c(log(12), 0.1),
-  end_decline_prior = c(log(30), 0.1),
-  N_pop = 14.5e6,
+  start_decline_prior = c(log(40), 0.2), # OK - there will be no way to model these data with 
+  # social distancing in March as the driver of changes in transmission so I am putting the control measures
+  # after the Cargill outbreak in here insteasd/ 
+  end_decline_prior = c(log(50), 0.2), # seems like BC? i don't know
+  N_pop = 4.4e6,
   chains = 4,
-  iter = 250
+  iter = 1000
 )
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, here(this_folder, "data-generated/ON-fit.rds"))
-
+saveRDS(fit, here(this_folder, "data-generated/AB-fit.rds"))
+saveRDS(fit, "selfIsolationModel/contact-ratios/AB-fit.rds")
 # Check fit -----------------------------------------------------------------
 
 proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
