@@ -10,7 +10,7 @@ test_here <- here::here()
 if (grepl("CoronaModelsBC$", test_here)) {
   here <- here::here
 } else {
-  setwd("~/CoronaModelsBC")
+  # setwd("~/CoronaModelsBC")
   here <- file.path
 }
 
