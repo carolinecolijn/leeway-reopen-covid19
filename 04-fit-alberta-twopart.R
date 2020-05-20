@@ -3,22 +3,6 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 # Notes ---------------------------------------------------------------------
 
-# Physical distancing timeline:
-#   - March 12: recommend cancelling large mass gatherings of over 1,000
-#   - March 13: recommending all gatherings over 250 be cancelled
-#   - March 14--24: Ramp-up in measures
-#   - March 25: closed all non-essential workplaces
-#   - March 30: public and private parks, sport fields, beaches,playgrounds,
-#     dog parks closed urging to stay home unless essential, particularly
-#     70+ and immune compromised
-# Testing:
-#   - April 3: ended test backlog, will prioritize LTC residents, workers
-#   - April 11: list of symptoms and testing expanded; daily tests processed
-#     expected to double
-#   - April 9: testing expanded to all health workers, first responders with
-#     symptoms, new residents, and workers at LTC
-#   - maybe testing backlog ended around April 1?
-# population Ontario: approx. 14.5e6
 
 # Read and prepare data -----------------------------------------------------
 
@@ -29,21 +13,21 @@ dat <- dplyr::filter(dat, province == "Alberta")
 ggplot(dat, aes(date, cases)) +
   geom_point()
 # Pick a reasonable starting date:
-dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01")) # COULD BE A FEW DAYS LATER 
+dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01")) # COULD BE A FEW DAYS LATER
 dat$day <- seq_len(nrow(dat))
 ggplot(dat, aes(date, cases)) +
   geom_point()
 
 # Try removing at least some of Cargill, for a better picture of community transmission
-#Cargill info: Apr 13: 38 cases reported Apr 20: 484 cases in High River - 360 outbreak. 
-#Apr 22: Deena Henshaw says 440 outbk cases (presumably in total) 
-#Apr 20 Plant closed for 2 weeks 
+#Cargill info: Apr 13: 38 cases reported Apr 20: 484 cases in High River - 360 outbreak.
+#Apr 22: Deena Henshaw says 440 outbk cases (presumably in total)
+#Apr 20 Plant closed for 2 weeks
 #May 4 plant re-opens
-#Total of 1560 cases, 949 confirmed. 
-#CONCLUSION: subtract up to 400 between Apr 13, Apr 22; subtract another 500 between Apr 22 and May 1. 
-dat1=filter(dat, date <= ymd("2020-04-13")) # Alberta, pre-Cargill. Fit with parameters below 
+#Total of 1560 cases, 949 confirmed.
+#CONCLUSION: subtract up to 400 between Apr 13, Apr 22; subtract another 500 between Apr 22 and May 1.
+dat1=filter(dat, date <= ymd("2020-04-13")) # Alberta, pre-Cargill. Fit with parameters below
 
-dat2=filter(dat, date > ymd("2020-04-13"))   # Cargill only. Will have to adjust N and starting time 
+dat2=filter(dat, date > ymd("2020-04-13"))   # Cargill only. Will have to adjust N and starting time
 dat2$day = seq_len(nrow(dat2))
 # as well as sampling compared to fit below
 
@@ -76,8 +60,8 @@ fit1 <- covidseir::fit_seir(
 samp_frac_fixed = absampling1,
   i0_prior = c(log(1), 0.5),
   start_decline_prior = c(log(15), 0.2), # without Cargill: March 15 to 22, model starts March 1
-  end_decline_prior = c(log(22), 0.2), 
-  N_pop = 4.4e6, # population of AB 
+  end_decline_prior = c(log(22), 0.2),
+  N_pop = 4.4e6, # population of AB
   chains = 4,
   iter = 600
 )
@@ -89,8 +73,8 @@ fit2 <- covidseir::fit_seir(
   samp_frac_fixed = absampling2,
   i0_prior = c(log(10), 0.5),
   start_decline_prior = c(log(6), 0.1), # without Cargill: March 15 to 22, model starts March 1
-  end_decline_prior = c(log(7), 0.1), 
-  N_pop = 15000, # population of Cargill + families and friends. A guess. 
+  end_decline_prior = c(log(7), 0.1),
+  N_pop = 15000, # population of Cargill + families and friends. A guess.
   chains = 4,
   iter = 600
 )

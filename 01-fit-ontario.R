@@ -48,18 +48,19 @@ saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 # Fit model -----------------------------------------------------------------
 
 # Example of visualizing a prior:
-# x <- seq(0, 10, length.out = 200)
-# plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
+# x <- seq(0, 40, length.out = 200)
+# plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
 fit <- covidseir::fit_seir(
   daily_cases = dat$value,
   samp_frac_fixed = rep(0.2, nrow(dat)),
   i0_prior = c(log(1), 0.5),
+  e_prior = c(0.8, 0.1),
   start_decline_prior = c(log(12), 0.1),
   end_decline_prior = c(log(30), 0.1),
   N_pop = 14.5e6,
   chains = 4,
-  iter = 250
+  iter = 300
 )
 
 print(fit)

@@ -1,27 +1,7 @@
 # Load some packages, functions, and global variables:
 source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
-require(smooth)
-require(Mcomp)
-library(fpp2)           # working with time series data
-library(zoo)            # working with time series data
-# Notes ---------------------------------------------------------------------
 
-# Physical distancing timeline:
-#   - March 12: recommend cancelling large mass gatherings of over 1,000
-#   - March 13: recommending all gatherings over 250 be cancelled
-#   - March 14--24: Ramp-up in measures
-#   - March 25: closed all non-essential workplaces
-#   - March 30: public and private parks, sport fields, beaches,playgrounds,
-#     dog parks closed urging to stay home unless essential, particularly
-#     70+ and immune compromised
-# Testing:
-#   - April 3: ended test backlog, will prioritize LTC residents, workers
-#   - April 11: list of symptoms and testing expanded; daily tests processed
-#     expected to double
-#   - April 9: testing expanded to all health workers, first responders with
-#     symptoms, new residents, and workers at LTC
-#   - maybe testing backlog ended around April 1?
-# population Ontario: approx. 14.5e6
+# Notes ---------------------------------------------------------------------
 
 # Read and prepare data -----------------------------------------------------
 library(ggplot2)
@@ -41,7 +21,7 @@ ggplot(dat, aes(date, daily_cases)) +
 #smoothing
 dat1 <- dat %>%
   select(date, daily_cases = daily_cases, day) %>%
-  mutate(daily_cases_smooth = rollmean(daily_cases, k = 3, fill = NA))
+  mutate(daily_cases_smooth = zoo::rollmean(daily_cases, k = 3, fill = NA))
 
 dat$daily_cases<-round(dat1$daily_cases_smooth)
 
@@ -50,18 +30,18 @@ saveRDS(dat, here("/selfIsolationModel/contact-ratios/","data-generated/BE-dat.r
 # Fit model -----------------------------------------------------------------
 
 # Example of visualizing a prior:
-x <- seq(0, 10, length.out = 200)
-plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
+# x <- seq(0, 10, length.out = 200)
+# plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
 fit <- covidseir::fit_seir(
   daily_cases = dat$daily_cases,
   samp_frac_fixed = rep(0.2, nrow(dat)),
   i0_prior = c(log(1), 0.5),
-  start_decline_prior = c(log(10), 0.25),
-  end_decline_prior = c(log(50), 0.25),
+  start_decline_prior = c(log(10), 0.2),
+  end_decline_prior = c(log(50), 0.2),
   N_pop = 11476279,
   chains = 4,
-  iter = 250
+  iter = 300
 )
 
 print(fit)

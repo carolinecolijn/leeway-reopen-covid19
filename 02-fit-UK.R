@@ -1,7 +1,5 @@
 # Load some packages, functions, and global variables:
 source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
-# I had to reinstall the here package to make this work: it sets as here the working
-# directory when the package is loaded
 
 # Notes ---------------------------------------------------------------------
 
@@ -12,7 +10,7 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Testing:
 #   - 15 March: begin rolling out tests for care home staff and residents
 #   - 17 April: widened testing for police officers, firefighters and prison staff
-#   - 23 April: daily capacity hits 50,000. Testing for key workers and their households. This does not really happen. 
+#   - 23 April: daily capacity hits 50,000. Testing for key workers and their households. This does not really happen.
 #   - 1 May: target of 100,000 tests per day - ramps up week 23rd Apr-1st May
 #   - Testing decreases again somewhat after May 1st
 # population UK: approx. 66.4e6
@@ -20,12 +18,12 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Read and prepare data -----------------------------------------------------
 
 dat <- readr::read_csv("https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-totals-uk.csv")
-dat <- rename(dat, date = Date) 
+dat <- rename(dat, date = Date)
 dat$cases <- c(dat$ConfirmedCases[1],diff(dat$ConfirmedCases))
 dat$daily_tests <- c(dat$Tests[1],diff(dat$Tests))
 
 n<-dim(dat)[1]
-if (is.na(tail(dat$cases, n=1))){dat<-dat[1:(n-1),]} 
+if (is.na(tail(dat$cases, n=1))){dat<-dat[1:(n-1),]}
 # gives NAs if the deaths have been released today but not the cases yet
 
 # View(dat)
@@ -57,14 +55,14 @@ saveRDS(dat, here(this_folder, "data-generated/UK-dat.rds"))
 
 fit <- covidseir::fit_seir(
   daily_cases = dat$value,
-  samp_frac_fixed = c(rep(0.2,  60), rep(0.3,  nrow(dat)-60)), 
-  # At first I kept this constant, now incorporating testing ramped up 30/04 = day 61
+  samp_frac_fixed = c(rep(0.2,  60), rep(0.3,  nrow(dat)-60)),
+  # incorporating testing ramped up 30/04 = day 61
   i0_prior = c(log(1), 0.5),
   start_decline_prior = c(log(16), 0.1),
   end_decline_prior = c(log(23), 0.1),
   N_pop = 66.4e6,
-  chains = 1,
-  iter = 200
+  chains = 4,
+  iter = 300
 )
 
 print(fit)
