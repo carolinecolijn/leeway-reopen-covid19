@@ -4,7 +4,16 @@ library(covidseir)
 if (packageVersion("covidseir") != "0.0.0.9002") {
   stop("Please install the latest 'est-i0' version of the model:\n`devtools::install_github('seananderson/covidseir', ref = 'est-i0')`")
 }
-library(here)
+# library(here)
+
+test_here <- here::here()
+if (grepl("CoronaModelsBC$", test_here)) {
+  here <- here::here
+} else {
+  setwd("~/CoronaModelsBC")
+  here <- file.path
+}
+
 options(mc.cores = parallel::detectCores() / 2) # Stan parallel processing
 dir.create(here("selfIsolationModel/contact-ratios/data-generated/"),
   showWarnings = FALSE)
