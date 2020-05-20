@@ -1,9 +1,6 @@
 # Load some packages, functions, and global variables:
 source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
-
-
-
 # Read and prepare data -----------------------------------------------------
 RawData <-  read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")
 RawData$date <- lubridate::dmy(RawData$dateRep)
@@ -11,10 +8,10 @@ DenmarkRaw <- dplyr::filter(RawData, countriesAndTerritories == "Denmark")
 
 DenmarkRaw <- DenmarkRaw[, c("date","cases")]
 
-# arranging the data in decending order
+# arranging the data in descending order
 DenmarkRaw$date <- rev(DenmarkRaw$date)
 DenmarkRaw$cases <- rev(DenmarkRaw$cases)
-DenmarkRaw$value <- DenmarkRaw$cases 
+DenmarkRaw$value <- DenmarkRaw$cases
 
 DenmarkRaw <- DenmarkRaw[, c("date","value")]
 
@@ -26,11 +23,8 @@ DenmarkData$day <- seq_len(nrow(DenmarkData))
 
 ggplot(DenmarkData, aes(date, value)) +
 	geom_point()
-View(DenmarkData)
+# View(DenmarkData)
 saveRDS(DenmarkData, here(this_folder, "data-generated/Denmark-dat.rds"))
-
-
-
 
 # Fit model -----------------------------------------------------------------
 
@@ -42,8 +36,8 @@ fit <- covidseir::fit_seir(
 	daily_cases = DenmarkData$value,
 	samp_frac_fixed = rep(0.2, nrow(DenmarkData)),
 	i0_prior = c(log(1), 0.5),
-	start_decline_prior = c(log(10), 0.1),
-	end_decline_prior = c(log(45), 0.1),
+	start_decline_prior = c(log(10), 0.2),
+	end_decline_prior = c(log(45), 0.2),
 	N_pop = 5824857,
 	chains = 4,
 	iter = 250
@@ -62,7 +56,7 @@ proj_tidy %>%
 	covidseir::plot_projection(DenmarkData)
 
 proj_tidy %>%
-	covidseir::plot_projection(DenmarkData) + 	
+	covidseir::plot_projection(DenmarkData) +
 	scale_y_log10()
 
 # Calculate threshold for increase ------------------------------------------
