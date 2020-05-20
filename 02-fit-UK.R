@@ -1,5 +1,7 @@
 # Load some packages, functions, and global variables:
 source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+# I had to reinstall the here package to make this work: it sets as here the working
+# directory when the package is loaded
 
 # Notes ---------------------------------------------------------------------
 
@@ -24,7 +26,6 @@ dat$daily_tests <- c(dat$Tests[1],diff(dat$Tests))
 
 n<-dim(dat)[1]
 if (is.na(tail(dat$cases, n=1))){dat<-dat[1:(n-1),]} 
-
 # gives NAs if the deaths have been released today but not the cases yet
 
 # View(dat)
@@ -56,7 +57,8 @@ saveRDS(dat, here(this_folder, "data-generated/UK-dat.rds"))
 
 fit <- covidseir::fit_seir(
   daily_cases = dat$value,
-  samp_frac_fixed = rep(0.2, nrow(dat)),
+  samp_frac_fixed = c(rep(0.2,  60), rep(0.3,  nrow(dat)-60)), 
+  # At first I kept this constant, now incorporating testing ramped up 30/04 = day 61
   i0_prior = c(log(1), 0.5),
   start_decline_prior = c(log(16), 0.1),
   end_decline_prior = c(log(23), 0.1),
@@ -89,7 +91,7 @@ proj_tidy %>%
 threshold <- get_thresh(fit, iter = 1:50,
   forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
 round(threshold, 2)
-saveRDS(threshold, here(this_folder, "data-generated/ON-threshold.rds"))
+saveRDS(threshold, here(this_folder, "data-generated/UK-threshold.rds"))
 
 # Quick plot:
 hist(fit$post$f_s[,1],
