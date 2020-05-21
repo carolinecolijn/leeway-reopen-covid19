@@ -5,8 +5,6 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-# dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-
 dat <- readr::read_csv("nCoVDailyData/CaseCounts/BC Case Counts.csv")
 names(dat)[names(dat) == "BC"] <- "Cases"
 dat$Date <- lubridate::dmy(dat$Date)
@@ -18,19 +16,6 @@ dat <- dplyr::filter(dat, Date >= ymd("2020-03-01"))
 dat <- dplyr::filter(dat, Date <= ymd("2020-05-16"))
 dat <- select(dat, date = Date, value = daily_diffs)
 dat$day <- seq_along(dat$date)
-
-# dat <- readr::read_csv(here(this_folder,"data-raw/CAN.csv"))
-# dat$date <- lubridate::dmy(dat$date_report)
-# dat <- dplyr::filter(dat, province == "BC")
-# # View(dat)
-# ggplot(dat, aes(date, cases)) +
-#   geom_point()
-# # Pick a reasonable starting date:
-# dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01"))
-# dat$day <- seq_len(nrow(dat))
-# ggplot(dat, aes(date, cases)) +
-#   geom_point() +
-#   geom_line()
 
 saveRDS(dat, file.path(this_folder, "data-generated/BC-dat.rds"))
 
@@ -51,7 +36,6 @@ if (!file.exists(fit_file)) {
     daily_cases = dat$value,
     samp_frac_fixed = samp_frac, # from hospital fit
     i0_prior = c(log(8), 1),
-    e_prior = c(0.8, 0.05),
     start_decline_prior = c(log(15), 0.1),
     end_decline_prior = c(log(22), 0.1),
     N_pop = 5.1e6,
