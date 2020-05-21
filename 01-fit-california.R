@@ -35,7 +35,7 @@ plot(ca$day, ca$value, type = "o")
 plot(ca$day, ca$tests, type = "o")
 plot(ca$date, ca$value, type = "l")
 # lines(ca$date, ca$hospitalized, col = "red")
-lines(ca$date, ca$tests/10, col = "blue")
+lines(ca$date, ca$tests / 10, col = "blue")
 
 (.s <- as.numeric(ymd("2020-03-12") - min(ca$date)))
 (.e <- as.numeric(ymd("2020-03-24") - min(ca$date)))
@@ -67,7 +67,7 @@ if (!file.exists(fit_file)) {
     chains = CHAINS,
     start_decline_prior = c(log(.s), 0.2),
     end_decline_prior = c(log(.e), 0.2),
-    i0_prior= c(log(1), 1),
+    i0_prior = c(log(1), 1),
     N_pop = 39.51e6
   )
   saveRDS(fit, fit_file)
