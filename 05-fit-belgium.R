@@ -4,8 +4,8 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Notes ---------------------------------------------------------------------
 
 # Read and prepare data -----------------------------------------------------
-library(ggplot2)
-data <- readr::read_csv("C:/Users/rebec/Documents/COVID_BP/CoronaModelsBC/selfIsolationModel/contact-ratios/data-raw/COVID19BE.csv")
+#data <- is from https://epistat.wiv-isp.be/Covid/
+data <- readr::read_csv(here(this_folder,"data-raw/COVID19BE.csv"))
 ggplot(data, aes(DATE, CASES)) +
   geom_bar(stat="identity")
 
@@ -25,7 +25,7 @@ dat1 <- dat %>%
 
 dat$daily_cases<-round(dat1$daily_cases_smooth)
 
-saveRDS(dat, here("/selfIsolationModel/contact-ratios/","data-generated/BE-dat.rds"))
+saveRDS(dat, here(this_folder,"data-generated/BE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -46,7 +46,7 @@ fit <- covidseir::fit_seir(
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, here("/selfIsolationModel/contact-ratios/", "data-generated/BE-fit.rds"))
+saveRDS(fit, here(this_folder, "data-generated/BE-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 dat$value <- dat$daily_cases
@@ -69,7 +69,7 @@ proj_tidy %>%
 threshold <- get_thresh(fit, iter = 1:50,
   forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
 round(threshold, 2)
-saveRDS(threshold, here("/selfIsolationModel/contact-ratios/", "data-generated/BE-threshold.rds"))
+saveRDS(threshold, here(this_folder, "data-generated/BE-threshold.rds"))
 
 # Quick plot:
 hist(fit$post$f_s[,1],
