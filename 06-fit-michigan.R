@@ -11,8 +11,9 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 #   - March 17: banned gatherings >50
 #   - March 24: stay-at-home order, discontinuing all non-essential travel,
 #      business servies and operations
-# Suggest 10-24 March for ramping down. Google mobility data suggest
-#  2020-03-09 to 2020-03-29.
+# Suggest 10-24 March for ramping down (values came close to these when using
+# the Ontario prior). Google mobility data suggest 2020-03-09 to 2020-03-29 so
+# using those for priors.
 
 # Notes:
 #   - March 27: Detroit declared a hot spot, 20% of total cases, 25% of deaths
@@ -22,16 +23,6 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 #       Dept. of Corrections facilities
 #   - Data are noisy, so doing three-day running average and rounding to nearest integer.
 # population Michigan: 9.986857e6 (give or take)
-
-# ONTARIO:
-# Testing:
-#   - April 3: ended test backlog, will prioritize LTC residents, workers
-#   - April 11: list of symptoms and testing expanded; daily tests processed
-#     expected to double
-#   - April 9: testing expanded to all health workers, first responders with
-#     symptoms, new residents, and workers at LTC
-#   - maybe testing backlog ended around April 1?
-# population Ontario: approx. 14.5e6
 
 # Read and prepare data -----------------------------------------------------
 # Minimum is: a column with cases named "value", a column named "date", a column named "day".
@@ -53,7 +44,7 @@ dat <- dplyr::select(dat, date, daily_cases, daily_tests = totalTestResultsIncre
 
 # Increase in daily tests through, but low numbers on some days that looks like
 #  reporting issues (i.e. low gets followed by high number)
-plot(dat$date, dat$daily_tests, type="o")
+plot(dat$date, dat$daily_tests, type = "o", main = "Daily tests")
 
 # Data are noisy, do three-day running average:
 dat <- dat %>%
@@ -136,8 +127,7 @@ saveRDS(threshold, here(this_folder, "data-generated/MI-threshold.rds"))
 
 # Quick plot:
 hist(fit$post$f_s[,1],
-     main = "", xlab = "Estimated fraction of normal contacts", breaks = 20,
-     xlim = c(0.25,0.4))
+     main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
 abline(v = threshold, col = "red", lwd = 2)
 
 # Keeping track of results (don't run) ---------------------------
@@ -173,3 +163,13 @@ f_s[1]         0.31    0.00 0.01  0.28  0.30  0.31  0.32  0.34   156 1.02
 start_decline  8.07    0.04 0.69  6.79  7.61  8.01  8.49  9.41   388 1.00
 end_decline   23.77    0.07 1.23 21.45 22.94 23.68 24.56 26.39   309 1.02
 phi[1]        19.89    0.24 3.43 13.31 17.72 19.86 22.11 27.06   204 1.03
+
+# MI Update package to also estimate the fraction social distancing, e:
+               mean se_mean   sd  2.5%   25%   50%   75% 97.5% n_eff Rhat
+R0             5.15    0.02 0.23  4.73  5.01  5.14  5.28  5.63   141 1.01
+i0             1.70    0.06 0.65  0.75  1.28  1.60  2.00  3.11   113 1.01
+e              0.82    0.01 0.07  0.70  0.77  0.81  0.87  0.95   129 1.00
+f_s[1]         0.28    0.01 0.08  0.11  0.24  0.29  0.34  0.41   138 1.00
+start_decline  8.06    0.03 0.69  6.77  7.57  8.05  8.50  9.48   412 1.00
+end_decline   23.88    0.08 1.31 21.38 23.03 23.88 24.79 26.30   289 1.00
+phi[1]        20.10    0.23 3.66 12.73 17.78 19.79 22.48 27.29   249 1.01
