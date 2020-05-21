@@ -48,8 +48,8 @@ fit <- covidseir::fit_seir(
   daily_cases = dat$cases, #fit to smoothed cases
   samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
   i0_prior = i0_PRIOR,
-  start_decline_prior = c(log(get_google_start("Sweden", dat)), 0.2), # c(log(6), 0.2),
-  end_decline_prior = c(log(get_google_end("Sweden", dat)), 0.2), # c(log(27), 0.2),
+  start_decline_prior = c(log(6), 0.2), # c(log(get_google_start("Sweden", dat)), 0.2),
+  end_decline_prior = c(log(27), 0.2), # c(log(get_google_end("Sweden", dat)), 0.2),
   N_pop = 10343403,
   chains = CHAINS,
   iter = ITER,
