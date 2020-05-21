@@ -4,28 +4,29 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 # Notes ---------------------------------------------------------------------
 
 # Read and prepare data -----------------------------------------------------
-#data <- readr::read_csv("https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv")
-data <- readr::read_csv(file.path(this_folder,"data-raw/BE.csv"))
+# data <- readr::read_csv("https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv")
+data <- readr::read_csv(file.path(this_folder, "data-raw/BE.csv"))
 ggplot(data, aes(DATE, CASES)) +
-  geom_bar(stat="identity")
+  geom_bar(stat = "identity")
 
-dat<-data%>% group_by(DATE) %>%
+dat <- data %>%
+  group_by(DATE) %>%
   summarize(cases = sum(CASES))
-dat$day<- seq_len(nrow(dat))
-names(dat)<-c("date","daily_cases","day")
+dat$day <- seq_len(nrow(dat))
+names(dat) <- c("date", "daily_cases", "day")
 # Pick a reasonable starting date:
 dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-03"))
 ggplot(dat, aes(date, daily_cases)) +
-  geom_bar(stat="identity")
+  geom_bar(stat = "identity")
 
-#smoothing
+# smoothing
 dat1 <- dat %>%
   select(date, daily_cases = daily_cases, day) %>%
   mutate(daily_cases_smooth = zoo::rollmean(daily_cases, k = 3, fill = NA))
 
-dat$daily_cases<-round(dat1$daily_cases_smooth)
+dat$daily_cases <- round(dat1$daily_cases_smooth)
 
-saveRDS(dat, file.path(this_folder,"data-generated/BE-dat.rds"))
+saveRDS(dat, file.path(this_folder, "data-generated/BE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
