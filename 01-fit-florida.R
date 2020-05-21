@@ -5,7 +5,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
-florida <- deployer::filter(d, state %in% "FL") %>%
+florida <- dplyr::filter(d, state %in% "FL") %>%
   select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease) %>%
   filter(date >= ymd("2020-03-05")) %>%
   rename(value = positiveIncrease, tests = totalTestResultsIncrease, hospitalized = hospitalizedIncrease) %>%
