@@ -23,7 +23,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 # Read and prepare data -----------------------------------------------------
 
 # dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(paste0(this_folder, "data-raw/CAN.csv"))
+dat <- readr::read_csv(file.path(this_folder, "data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Ontario")
 # View(dat)
