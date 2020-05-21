@@ -1,14 +1,15 @@
-library(ggplot2)
-library(dplyr)
-# library(future)
-library(covidseir)
-# plan(multisession)
-options(mc.cores = parallel::detectCores() / 2)
-ymd <- lubridate::ymd
+# Load some packages, functions, and global variables:
+source("selfIsolationModel/contact-ratios/model-prep.R")
+
+# Notes ---------------------------------------------------------------------
+
+# See below
+
+# Read and prepare data -----------------------------------------------------
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(here::here("data-generated/us-data.csv"))
+d <- readr::read_csv(paste0(this_folder, "data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 new_york <- filter(d, state %in% "NY") %>%
@@ -77,25 +78,44 @@ lines(new_york$date, new_york$tests/10, col = "blue")
 (samp_frac_fixed <- rep(0.25, nrow(new_york)))
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
-ny_fit <- covidseir::fit_seir(
-  daily_cases = new_york$value,
-  samp_frac_fixed = samp_frac_fixed,
-  time_increment = 0.1,
-  R0_prior = c(log(2.6), 0.2),
-  iter = 500,
-  chains = 8,
-  start_decline_prior = c(log(.s), 0.2),
-  end_decline_prior = c(log(.e), 0.2),
-  i0_prior = c(log(1), 0.5),
-  N_pop=19.45e6
-   )
-ny_fit
-p <- covidseir::project_seir(ny_fit, iter = 1:100)
-covidseir::tidy_seir(p) %>%
-  covidseir::plot_projection(new_york)
+dat <- new_york
+saveRDS(dat, paste0(this_folder, "data-generated/NY-dat.rds"))
 
-saveRDS(ny_fit, file = here::here("data-generated/NY-fit.rds"))
-saveRDS(new_york, file = here::here("data-generated/NY-dat.rds"))
+# Fit model -----------------------------------------------------------------
+
+# Example of visualizing a prior:
+# x <- seq(0, 40, length.out = 200)
+# plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
+
+fit_file <- paste0(this_folder, "data-generated/NY-fit.rds")
+if (!file.exists(fit_file)) {
+  fit <- covidseir::fit_seir(daily_cases = dat$value,
+                             samp_frac_fixed = samp_frac_fixed,
+                             time_increment = 0.1,
+                             R0_prior = c(log(2.6), 0.2),
+                             iter = ITER,
+                             chains = CHAINS,
+                             start_decline_prior = c(log(.s), 0.2),
+                             end_decline_prior = c(log(.e), 0.2),
+                             i0_prior = c(log(1), 0.5),
+                             N_pop=19.45e6
+                             )
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
+
+print(fit)
+make_traceplot(fit)
+
+# Check fit -----------------------------------------------------------------
+
+# p <- covidseir::project_seir(ny_fit, iter = 1:100)
+# covidseir::tidy_seir(p) %>%
+#   covidseir::plot_projection(new_york)
+#
+# saveRDS(ny_fit, file = here::here("data-generated/NY-fit.rds"))
+# saveRDS(new_york, file = here::here("data-generated/NY-dat.rds"))
 
 # model <- rstan::stan_model("analysis/seeiqr.stan")
 # source("analysis/fit_seeiqr.R")
