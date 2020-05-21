@@ -47,12 +47,12 @@ saveRDS(dat, here(this_folder, "data-generated/SWE-dat.rds"))
 fit <- covidseir::fit_seir(
   daily_cases = dat$cases, #fit to smoothed cases
   samp_frac_fixed = rep(0.2, nrow(dat)),
-  i0_prior = c(log(1), 0.5),
+  i0_prior = c(log(1), 1),
   start_decline_prior = c(log(6), 0.2),
   end_decline_prior = c(log(27), 0.2),
   N_pop = 10343403,
-  chains = 4,
-  iter = 250,
+  chains = CHAINS,
+  iter = ITER,
   pars = c(D = 5, k1 = 1/5, k2 = 1,
     q = 0.05, r = 0.1, ur = covidseir:::getu(0.6, r = 0.1), f0 = 1)
 )

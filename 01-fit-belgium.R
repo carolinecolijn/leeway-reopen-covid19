@@ -39,12 +39,12 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$daily_cases,
     samp_frac_fixed = rep(0.2, nrow(dat)),
-    i0_prior = c(log(1), 0.5),
+    i0_prior = c(log(1), 1),
     start_decline_prior = c(log(9), 0.2),
     end_decline_prior = c(log(17), 0.2),
     N_pop = 11476279,
-    chains = 4,
-    iter = 300
+    chains = CHAINS,
+    iter = ITER
   )
   saveRDS(fit, fit_file)
 } else {

@@ -48,7 +48,6 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = wa$value,
     samp_frac_fixed = samp_frac_fixed,
-    R0_prior = c(log(2.6), 0.2),
     iter = ITER,
     chains = CHAINS,
     start_decline_prior = c(log(.s), 0.1),
