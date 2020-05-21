@@ -42,8 +42,8 @@ ggplot(dat2, aes(day, cases)) +
 dat1$daily_cases <- dat1$cases
 dat2$daily_cases <- dat2$cases
 
-saveRDS(dat1, file.path(this_folder, "data-generated/AB-dat1.rds"))
-saveRDS(dat2, file.path(this_folder, "data-generated/AB-dat2.rds"))
+saveRDS(dat1, file.path(this_folder, "data-generated/AB1-dat.rds"))
+saveRDS(dat2, file.path(this_folder, "data-generated/AB2-dat.rds"))
 
 absampling1 <- rep(0.2, nrow(dat1)) # there was a testing breakpoint at about apr14 anyway
 absampling2 <- rep(0.4, nrow(dat2))
@@ -55,14 +55,14 @@ absampling2 <- rep(0.4, nrow(dat2))
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
 # Fit dat1:
-fit_file1 <- file.path(this_folder, "data-generated/AB-fit1.rds")
+fit_file1 <- file.path(this_folder, "data-generated/AB1-fit.rds")
 if (!file.exists(fit_file1)) {
   fit1 <- covidseir::fit_seir(
     daily_cases = dat1$daily_cases,
     samp_frac_fixed = absampling1,
     i0_prior = c(log(1), 0.5),
-    start_decline_prior = c(log(15), 0.1), # without Cargill:
-    # March 15 to 22, model starts March 1
+    f_prior = c(0.2, 0.1),
+    start_decline_prior = c(log(15), 0.1),
     end_decline_prior = c(log(22), 0.1),
     N_pop = 4.4e6, # population of AB
     chains = CHAINS,
@@ -78,14 +78,13 @@ make_traceplot(fit1)
 
 # Fit dat2:
 
-fit_file2 <- file.path(this_folder, "data-generated/AB-fit2.rds")
+fit_file2 <- file.path(this_folder, "data-generated/AB2-fit.rds")
 if (!file.exists(fit_file2)) {
   fit2 <- covidseir::fit_seir(
     daily_cases = dat2$daily_cases,
     samp_frac_fixed = absampling2,
     i0_prior = c(log(10), 0.5),
-    start_decline_prior = c(log(6), 0.1), # without Cargill:
-    # March 15 to 22, model starts March 1
+    start_decline_prior = c(log(6), 0.1),
     end_decline_prior = c(log(7), 0.1),
     N_pop = 15000, # population of Cargill + families and
     # friends. A guess.
