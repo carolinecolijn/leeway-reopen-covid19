@@ -5,7 +5,7 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 # Read and prepare data -----------------------------------------------------
 library(ggplot2)
-data <- readr::read_csv("C:/Users/rebec/Documents/COVID_BP/CoronaModelsBC/COVID19BE.csv")
+data <- readr::read_csv("C:/Users/rebec/Documents/COVID_BP/CoronaModelsBC/selfIsolationModel/contact-ratios/data-raw/COVID19BE.csv")
 ggplot(data, aes(DATE, CASES)) +
   geom_bar(stat="identity")
 
