@@ -78,11 +78,11 @@ fit_file <- paste0(this_folder, "data-generated/NZ-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = nz$not_overseas_cases,
-    samp_frac_fixed = samp_frac_fixed,
-    iter = ITER,
+    samp_frac_fixed = samp_frac_fixed, # rep(SAMP_FRAC, nrow(dat)),
     # f_ramp_rate = 0.5,
-    start_decline_prior = c(log(.s), 0.2),
-    end_decline_prior = c(log(.e), 0.2),
+    start_decline_prior = c(log(.s), 0.2), # c(log(get_google_start("New Zealand", dat)), 0.2),
+    end_decline_prior = c(log(.e), 0.2), # c(log(get_google_end("New Zealand", dat)), 0.2),
+    iter = ITER,
     chains = CHAINS,
     i0_prior = c(log(0.01), 1), # setting to 0.001 worked before
     e_prior = c(0.9, 0.05),
