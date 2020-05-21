@@ -73,7 +73,7 @@ if (!file.exists(fit_file)) {
 } else {
   fit <- readRDS(fit_file)
 }
-fit
+print(fit)
 # p <- covidseir::project_seir(fit, iter = 1:50)
 # covidseir::tidy_seir(p) %>%
 #   covidseir::plot_projection(ca) +
