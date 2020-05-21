@@ -51,8 +51,8 @@ lines(ca$date, ca$tests / 10, col = "blue")
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 ca$value
-stopifnot(unique(ca$value[38]) == 0)
-ca$value[38] <- NA
+# stopifnot(unique(ca$value[38]) == 0)
+# ca$value[38] <- NA
 stopifnot(unique(ca$value[9]) == 0)
 ca$value[9] <- NA
 ca$value
@@ -62,12 +62,12 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = ca$value,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(ca)),
-    start_decline_prior = c(log(get_google_start("California", dat)), 0.2), #c(log(.s), 0.2),
-    end_decline_prior = c(log(get_google_end("California", dat)), 0.2), # c(log(.e), 0.2),
-    i0_prior = i0_PRIOR,
-    N_pop = 39.51e6,
+    iter = ITER,
     chains = CHAINS,
-    iter = ITER
+    start_decline_prior = c(log(get_google_start("California")), 0.2),
+    end_decline_prior = c(log(get_google_end("California")), 0.2),
+    i0_prior = i0_PRIOR,
+    N_pop = 39.51e6
   )
   saveRDS(fit, fit_file)
 } else {
