@@ -1,17 +1,11 @@
-library(ggplot2)
-library(dplyr)
-# library(future)
-library(covidseir)
-# plan(multisession)
-options(mc.cores = parallel::detectCores() / 2)
-ymd <- lubridate::ymd
+source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(here::here("data-generated/us-data.csv"))
+d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
-florida <- filter(d, state %in% "FL") %>%
+florida <- deployer::filter(d, state %in% "FL") %>%
   select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease) %>%
   filter(date >= ymd("2020-03-05")) %>%
   rename(value = positiveIncrease, tests = totalTestResultsIncrease, hospitalized = hospitalizedIncrease) %>%
@@ -47,26 +41,32 @@ get_days_since <- function(until, since) {
 
 florida$value
 
-fit <- covidseir::fit_seir(
-  daily_cases = florida$value,
-  samp_frac_fixed = samp_frac_fixed,
-  time_increment = 0.1,
-  R0_prior = c(log(2.6), 0.2),
-  iter = 500,
-  chains = 8,
-  start_decline_prior = c(log(start_decline), 0.1),
-  end_decline_prior = c(log(end_decline), 0.1),
-  i0_prior = c(log(1),5),
-  N_pop = 21.48e6, 
-)
+fit_file <- file.path(this_folder, "data-generated/FL-fit.rds")
+if (!file.exists(fit_file)) {
+  fit <- covidseir::fit_seir(
+    daily_cases = florida$value,
+    samp_frac_fixed = samp_frac_fixed,
+    time_increment = 0.1,
+    R0_prior = c(log(2.6), 0.2),
+    iter = ITER,
+    chains = CHAINS,
+    start_decline_prior = c(log(start_decline), 0.2),
+    end_decline_prior = c(log(end_decline), 0.2),
+    i0_prior = c(log(1), 1),
+    N_pop = 21.48e6,
+  )
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
+
 fit
 p <- covidseir::project_seir(fit, iter = 1:100)
 covidseir::tidy_seir(p) %>%
   covidseir::plot_projection(florida)# +
-  # scale_y_log10()
+# scale_y_log10()
 
-saveRDS(fit, file = here::here("data-generated/FL-fit.rds"))
-saveRDS(florida, file = here::here("data-generated/FL-dat.rds"))
+saveRDS(florida, file = file.path(this_folder, "data-generated/FL-dat.rds"))
 
 # model <- rstan::stan_model("analysis/seeiqr.stan")
 # source("analysis/fit_seeiqr.R")
