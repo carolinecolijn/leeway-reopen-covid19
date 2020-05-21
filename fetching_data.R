@@ -3,6 +3,8 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 library("readxl")
 library("rio")
 
+#script to fetch Raw data and save copy on data-raw folder
+
 ## UK
 location<-"data-raw/UK.csv"
 linkRaw<-"https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-totals-uk.csv"
