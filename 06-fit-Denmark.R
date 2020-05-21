@@ -19,7 +19,7 @@ DenmarkRaw <- DenmarkRaw[, c("date","value")]
 ggplot(DenmarkRaw, aes(date, value)) +	geom_point()
 
 # Pick a reasonable starting date:
-DenmarkData <- dplyr::filter(DenmarkRaw, date >= lubridate::ymd("2020-03-4"))
+DenmarkData <- dplyr::filter(DenmarkRaw, date >= lubridate::ymd("2020-03-01"))
 DenmarkData$day <- seq_len(nrow(DenmarkData))
 
 ggplot(DenmarkData, aes(date, value)) +
