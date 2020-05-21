@@ -8,7 +8,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 # Read and prepare data -----------------------------------------------------
 
 #dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(paste0(this_folder,"data-raw/CAN.csv"))
+dat <- readr::read_csv(file.path(this_folder,"data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Alberta")
 # View(dat)
@@ -42,13 +42,11 @@ ggplot(dat2, aes(day, cases)) +
 dat1$daily_cases = dat1$cases
 dat2$daily_cases = dat2$cases
 
-
-saveRDS(dat1, paste0(this_folder, "data-generated/AB-dat1.rds"))
-saveRDS(dat2, paste0(this_folder, "data-generated/AB-dat2.rds"))
+saveRDS(dat1, file.path(this_folder, "data-generated/AB-dat1.rds"))
+saveRDS(dat2, file.path(this_folder, "data-generated/AB-dat2.rds"))
 
 absampling1 = rep(0.2,nrow(dat1)) # there was a testing breakpoint at about apr14 anyway
 absampling2 = rep(0.4, nrow(dat2))
-
 
 # Fit model -----------------------------------------------------------------
 
@@ -57,7 +55,7 @@ absampling2 = rep(0.4, nrow(dat2))
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
 # Fit dat1:
-fit_file1 <- paste0(this_folder, "data-generated/AB-fit1.rds")
+fit_file1 <- file.path(this_folder, "data-generated/AB-fit1.rds")
 if (!file.exists(fit_file1)) {
   fit1 <- covidseir::fit_seir(
                        daily_cases = dat1$daily_cases,
@@ -80,7 +78,7 @@ make_traceplot(fit1)
 
 # Fit dat2:
 
-fit_file2 <- paste0(this_folder, "data-generated/AB-fit2.rds")
+fit_file2 <- file.path(this_folder, "data-generated/AB-fit2.rds")
 if (!file.exists(fit_file2)) {
   fit2 <- covidseir::fit_seir(
                        daily_cases = dat2$daily_cases,
