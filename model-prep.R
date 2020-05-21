@@ -4,14 +4,11 @@ library(covidseir)
 if (packageVersion("covidseir") != "0.0.0.9002") {
   stop("Please install the latest 'est-i0' version of the model:\n`devtools::install_github('seananderson/covidseir', ref = 'est-i0')`")
 }
-# library(here)
 
-test_here <- here::here()
-if (grepl("CoronaModelsBC$", test_here)) {
-  here <- here::here
-} else {
-  # setwd("~/CoronaModelsBC")
-  here <- file.path
+wd <- getwd()
+if (!grepl("CorondaModelsBC$", wd)) {
+  stop("Please set your working directory to the `CoronaModelsBC` directory.",
+    call. = FALSE)
 }
 
 options(mc.cores = parallel::detectCores() / 2) # Stan parallel processing
@@ -23,7 +20,7 @@ dir.create(here("selfIsolationModel/contact-ratios/data-raw/"),
   showWarnings = FALSE)
 
 # For the threshold function; need to get it into the package:
-source(here("selfIsolationModel/contact-ratios/functions.R"))
+source("selfIsolationModel/contact-ratios/functions.R")
 
 this_folder <- "selfIsolationModel/contact-ratios/"
 
