@@ -41,19 +41,18 @@ get_days_since <- function(until, since) {
 
 florida$value
 
+dat <- florida
 fit_file <- file.path(this_folder, "data-generated/FL-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
-    daily_cases = florida$value,
-    samp_frac_fixed = samp_frac_fixed,
-    time_increment = 0.1,
-    R0_prior = c(log(2.6), 0.2),
+    daily_cases = dat$value,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)), # was 0.25 for preprint
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(start_decline), 0.2),
-    end_decline_prior = c(log(end_decline), 0.2),
-    i0_prior = c(log(1), 1),
-    N_pop = 21.48e6,
+    start_decline_prior = c(log(get_google_start("Florida", dat)), 0.2), # c(log(start_decline), 0.2),
+    end_decline_prior = c(log(get_google_end("Florida", dat)), 0.2), # c(log(end_decline), 0.2),
+    i0_prior = i0_PRIOR,
+    N_pop = 21.48e6
   )
   saveRDS(fit, fit_file)
 } else {
