@@ -5,7 +5,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-#dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
+# dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
 
 dat <- readr::read_csv("nCoVDailyData/CaseCounts/BC Case Counts.csv")
 names(dat)[names(dat) == "BC"] <- "Cases"
@@ -31,18 +31,10 @@ dat$day <- seq_along(dat$date)
 # ggplot(dat, aes(date, cases)) +
 #   geom_point() +
 #   geom_line()
-#
-# # Try redistributing Apr 01 bump:
-# dat$adjust_cases <- dat$cases
-# excess <- (dat[32,]$cases - dat[33,]$cases)/5
-# dat[32,]$adjust_cases <- dat[33,]$cases
-# dat[27:31,]$adjust_cases <- round(dat[27:31,]$cases + excess)
-# dat$value <- dat$adjust_cases # for plotting function
-# ggplot(dat, aes(day, value)) +
-#   geom_point()
 
 saveRDS(dat, file.path(this_folder, "data-generated/BC-dat.rds"))
 
+# Based on estimation with hospital data in other model:
 samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.21, 11))
 samp_frac <- c(samp_frac, rep(0.37, nrow(dat) - length(samp_frac)))
 samp_frac
