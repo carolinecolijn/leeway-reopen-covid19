@@ -28,7 +28,7 @@ data <- readr::read_csv(linkRaw)
 readr::write_csv(data, here(this_folder, location))
 
 ## EURO
+location <- "data-raw/EURO.csv"
 linkRaw <- "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv"
 data <- readr::read_csv(linkRaw)
-location <- "data-raw/EURO.csv"
 readr::write_csv(data, here(this_folder, location))
