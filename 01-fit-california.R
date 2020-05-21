@@ -1,3 +1,5 @@
+source("selfIsolationModel/contact-ratios/model-prep.R")
+
 # timeline:
 # Jan 26: first case
 # Mar 12: ban mass gatherings
@@ -14,15 +16,9 @@
 #     r = 0.1, ur = 0.02, f0 = 1.0, start_decline = 12, end_decline =24
 #   ))
 
-library(ggplot2)
-library(dplyr)
-library(covidseir)
-options(mc.cores = parallel::detectCores() / 2)
-ymd <- lubridate::ymd
-
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(here::here("data-generated/us-data.csv"))
+d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 ca <- filter(d, state %in% "CA") %>%
@@ -52,7 +48,6 @@ lines(ca$date, ca$tests/10, col = "blue")
 #   geom_vline(xintercept = ymd("2020-03-12")) +
 #   geom_vline(xintercept = ymd("2020-03-24"))
 
-(samp_frac_fixed <- rep(0.25, nrow(ca)))
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 ca$value
@@ -61,23 +56,28 @@ ca$value[38] <- NA
 stopifnot(unique(ca$value[9]) == 0)
 ca$value[9] <- NA
 ca$value
-fit <- covidseir::fit_seir(
-  daily_cases = ca$value,
-  samp_frac_fixed = samp_frac_fixed,
-  time_increment = 0.1,
-  R0_prior = c(log(2.6), 0.2),
-  iter = 500,
-  chains = 8,
-  start_decline_prior = c(log(.s), 0.1),
-  end_decline_prior = c(log(.e), 0.1),
-  i0_prior= c(log(1),0.5),
-  N_pop = 39.51e6 
- )
-fit
-p <- covidseir::project_seir(fit, iter = 1:50)
-covidseir::tidy_seir(p) %>%
-  covidseir::plot_projection(ca) +
-  scale_y_log10()
 
-saveRDS(fit, file = here::here("data-generated/CA-fit.rds"))
-saveRDS(ca, file = here::here("data-generated/CA-dat.rds"))
+fit_file <- paste0(this_folder, "data-generated/CA-fit.rds")
+if (!file.exists(fit_file)) {
+  fit <- covidseir::fit_seir(
+    daily_cases = ca$value,
+    samp_frac_fixed = rep(0.2, nrow(ca)),
+    R0_prior = c(log(2.6), 0.2),
+    iter = ITER,
+    chains = CHAINS,
+    start_decline_prior = c(log(.s), 0.2),
+    end_decline_prior = c(log(.e), 0.2),
+    i0_prior= c(log(1), 1),
+    N_pop = 39.51e6
+  )
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
+fit
+# p <- covidseir::project_seir(fit, iter = 1:50)
+# covidseir::tidy_seir(p) %>%
+#   covidseir::plot_projection(ca) +
+#   scale_y_log10()
+
+saveRDS(ca, file = file.path(this_folder, "data-generated/CA-dat.rds"))
