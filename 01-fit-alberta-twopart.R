@@ -7,8 +7,8 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-#dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(file.path(this_folder,"data-raw/CAN.csv"))
+# dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
+dat <- readr::read_csv(file.path(this_folder, "data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Alberta")
 # View(dat)
@@ -21,16 +21,16 @@ ggplot(dat, aes(date, cases)) +
   geom_point()
 
 # Try removing at least some of Cargill, for a better picture of community transmission
-#Cargill info: Apr 13: 38 cases reported Apr 20: 484 cases in High River - 360 outbreak.
-#Apr 22: Deena Henshaw says 440 outbk cases (presumably in total)
-#Apr 20 Plant closed for 2 weeks
-#May 4 plant re-opens
-#Total of 1560 cases, 949 confirmed.
-#CONCLUSION: subtract up to 400 between Apr 13, Apr 22; subtract another 500 between Apr 22 and May 1.
-dat1=filter(dat, date <= ymd("2020-04-13")) # Alberta, pre-Cargill. Fit with parameters below
+# Cargill info: Apr 13: 38 cases reported Apr 20: 484 cases in High River - 360 outbreak.
+# Apr 22: Deena Henshaw says 440 outbk cases (presumably in total)
+# Apr 20 Plant closed for 2 weeks
+# May 4 plant re-opens
+# Total of 1560 cases, 949 confirmed.
+# CONCLUSION: subtract up to 400 between Apr 13, Apr 22; subtract another 500 between Apr 22 and May 1.
+dat1 <- filter(dat, date <= ymd("2020-04-13")) # Alberta, pre-Cargill. Fit with parameters below
 
-dat2=filter(dat, date > ymd("2020-04-13"))   # Cargill only. Will have to adjust N and starting time
-dat2$day = seq_len(nrow(dat2))
+dat2 <- filter(dat, date > ymd("2020-04-13")) # Cargill only. Will have to adjust N and starting time
+dat2$day <- seq_len(nrow(dat2))
 # as well as sampling compared to fit below
 
 dat1$value <- dat1$cases # for plotting function
@@ -39,14 +39,14 @@ dat2$value <- dat2$cases # for plotting function
 ggplot(dat2, aes(day, cases)) +
   geom_point()
 
-dat1$daily_cases = dat1$cases
-dat2$daily_cases = dat2$cases
+dat1$daily_cases <- dat1$cases
+dat2$daily_cases <- dat2$cases
 
 saveRDS(dat1, file.path(this_folder, "data-generated/AB-dat1.rds"))
 saveRDS(dat2, file.path(this_folder, "data-generated/AB-dat2.rds"))
 
-absampling1 = rep(0.2,nrow(dat1)) # there was a testing breakpoint at about apr14 anyway
-absampling2 = rep(0.4, nrow(dat2))
+absampling1 <- rep(0.2, nrow(dat1)) # there was a testing breakpoint at about apr14 anyway
+absampling2 <- rep(0.4, nrow(dat2))
 
 # Fit model -----------------------------------------------------------------
 
@@ -58,16 +58,16 @@ absampling2 = rep(0.4, nrow(dat2))
 fit_file1 <- file.path(this_folder, "data-generated/AB-fit1.rds")
 if (!file.exists(fit_file1)) {
   fit1 <- covidseir::fit_seir(
-                       daily_cases = dat1$daily_cases,
-                       samp_frac_fixed = absampling1,
-                       i0_prior = c(log(1), 0.5),
-                       start_decline_prior = c(log(15), 0.2), # without Cargill:
-                           # March 15 to 22, model starts March 1
-                       end_decline_prior = c(log(22), 0.2),
-                       N_pop = 4.4e6, # population of AB
-                       chains = CHAINS,
-                       iter = ITER
-                     )
+    daily_cases = dat1$daily_cases,
+    samp_frac_fixed = absampling1,
+    i0_prior = c(log(1), 0.5),
+    start_decline_prior = c(log(15), 0.2), # without Cargill:
+    # March 15 to 22, model starts March 1
+    end_decline_prior = c(log(22), 0.2),
+    N_pop = 4.4e6, # population of AB
+    chains = CHAINS,
+    iter = ITER
+  )
   saveRDS(fit1, fit_file1)
 } else {
   fit1 <- readRDS(fit_file1)
@@ -81,17 +81,17 @@ make_traceplot(fit1)
 fit_file2 <- file.path(this_folder, "data-generated/AB-fit2.rds")
 if (!file.exists(fit_file2)) {
   fit2 <- covidseir::fit_seir(
-                       daily_cases = dat2$daily_cases,
-                       samp_frac_fixed = absampling2,
-                       i0_prior = c(log(10), 0.5),
-                       start_decline_prior = c(log(6), 0.1), # without Cargill:
-                            # March 15 to 22, model starts March 1
-                       end_decline_prior = c(log(7), 0.1),
-                       N_pop = 15000, # population of Cargill + families and
-                                      # friends. A guess.
-                       chains = CHAINS,
-                       iter = ITER
-                     )
+    daily_cases = dat2$daily_cases,
+    samp_frac_fixed = absampling2,
+    i0_prior = c(log(10), 0.5),
+    start_decline_prior = c(log(6), 0.1), # without Cargill:
+    # March 15 to 22, model starts March 1
+    end_decline_prior = c(log(7), 0.1),
+    N_pop = 15000, # population of Cargill + families and
+    # friends. A guess.
+    chains = CHAINS,
+    iter = ITER
+  )
   saveRDS(fit2, fit_file2)
 } else {
   fit2 <- readRDS(fit_file2)
