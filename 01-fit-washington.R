@@ -35,7 +35,6 @@ lines(wa$date, wa$tests/10, col = "blue")
 # Tests Jump on day 9 from <100 to >2000
 # and to > 10,000 by the 16th
 
-(samp_frac_fixed <- rep(0.2, nrow(wa)))
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 wa$value
@@ -47,12 +46,12 @@ fit_file <- file.path(this_folder, "data-generated/WA-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = wa$value,
-    samp_frac_fixed = samp_frac_fixed,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(wa)),
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(.s), 0.1),
-    end_decline_prior = c(log(.e), 0.1),
-    i0_prior = c(log(1), 1),
+    start_decline_prior = c(log(get_google_start("Washington", ca)), 0.2),
+    end_decline_prior = c(log(get_google_end("Washington", ca)), 0.2),
+    i0_prior = i0_PRIOR,
     N_pop = 7.6e6,
   )
   saveRDS(fit, fit_file)
