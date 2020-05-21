@@ -44,7 +44,7 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
 
-saveRDS(dat, paste0(this_folder, "data-generated/ON-dat.rds"))
+saveRDS(dat, file.path(this_folder, "data-generated/ON-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -52,7 +52,7 @@ saveRDS(dat, paste0(this_folder, "data-generated/ON-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- paste0(this_folder, "data-generated/ON-fit.rds")
+fit_file <- file.path(this_folder, "data-generated/ON-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
