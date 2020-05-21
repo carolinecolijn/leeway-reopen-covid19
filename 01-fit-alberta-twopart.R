@@ -61,9 +61,9 @@ if (!file.exists(fit_file1)) {
     daily_cases = dat1$daily_cases,
     samp_frac_fixed = absampling1,
     i0_prior = c(log(1), 0.5),
-    start_decline_prior = c(log(15), 0.2), # without Cargill:
+    start_decline_prior = c(log(15), 0.1), # without Cargill:
     # March 15 to 22, model starts March 1
-    end_decline_prior = c(log(22), 0.2),
+    end_decline_prior = c(log(22), 0.1),
     N_pop = 4.4e6, # population of AB
     chains = CHAINS,
     iter = ITER
