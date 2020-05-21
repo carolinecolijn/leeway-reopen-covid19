@@ -19,10 +19,10 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-dat <- readr::read_csv(file.path(this_folder,"data-raw/CAN.csv"))
+dat <- readr::read_csv(file.path(this_folder, "data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01"))
-qc_dat <- filter(dat, province == "Quebec")
+qc_dat <- dplyr::filter(dat, province == "Quebec")
 qc_dat$day <- seq_len(nrow(qc_dat))
 qc_dat$cases
 
@@ -57,7 +57,7 @@ dat <- qc_dat
 
 # Fit model -----------------------------------------------------------------
 
-fit_file <- file.path(this_folder, "data-generated/ON-fit.rds")
+fit_file <- file.path(this_folder, "data-generated/QC-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
@@ -76,6 +76,8 @@ if (!file.exists(fit_file)) {
 
 print(fit)
 make_traceplot(fit)
+
+saveRDS(dat, file.path(this_folder, "data-generated/QC-dat.rds"))
 
 # Check fit -----------------------------------------------------------------
 
