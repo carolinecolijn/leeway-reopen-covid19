@@ -12,11 +12,11 @@ if (!grepl("CoronaModelsBC$", wd)) {
 }
 
 options(mc.cores = parallel::detectCores() / 2) # Stan parallel processing
-dir.create(here("selfIsolationModel/contact-ratios/data-generated/"),
+dir.create("selfIsolationModel/contact-ratios/data-generated/",
   showWarnings = FALSE)
-dir.create(here("selfIsolationModel/contact-ratios/figs/"),
+dir.create("selfIsolationModel/contact-ratios/figs/",
   showWarnings = FALSE)
-dir.create(here("selfIsolationModel/contact-ratios/data-raw/"),
+dir.create("selfIsolationModel/contact-ratios/data-raw/",
   showWarnings = FALSE)
 
 # For the threshold function; need to get it into the package:

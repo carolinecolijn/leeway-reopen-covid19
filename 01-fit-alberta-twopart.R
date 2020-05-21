@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 
