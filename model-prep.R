@@ -33,6 +33,7 @@ make_traceplot <- function(fit) {
 }
 
 ymd <- lubridate::ymd
+dmy <- lubridate::dmy
 
 ITER <- 200
 CHAINS <- 4

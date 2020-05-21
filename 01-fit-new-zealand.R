@@ -1,8 +1,5 @@
-library(dplyr)
-library(ggplot2)
-dmy <- lubridate::dmy
-ymd <- lubridate::ymd
-options(mc.cores = parallel::detectCores() / 2)
+# Load some packages, functions, and global variables:
+source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 # https://en.wikipedia.org/wiki/COVID-19_pandemic_in_New_Zealand#Requirements
 # Ardern announced that, effective 01:00 on 16 March, all travellers arriving in or returning to New Zealand from outside of the country must self-isolate for 14 days.
@@ -23,7 +20,7 @@ options(mc.cores = parallel::detectCores() / 2)
 #   # geom_vline(xintercept = ymd("2020-03-24")) +
 #   geom_vline(xintercept = ymd("2020-03-27"))
 
-d <- readr::read_csv(here::here("data-raw/covid-cases-7may20-NZ.csv"), skip = 3)
+d <- readr::read_csv(here(this_folder, "data-raw/covid-cases-7may20-NZ.csv"), skip = 3)
 d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas travel`) %>%
   select(date, overseas) %>%
   mutate(date = dmy(date)) %>%
@@ -83,17 +80,17 @@ fit <- covidseir::fit_seir(
   time_increment = 0.1,
   R0_prior = c(log(2.6), 0.2),
   f_prior = c(0.3, 0.2),
-  iter = 400,
+  iter = 200,
   # f_ramp_rate = 0.5,
   start_decline_prior = c(log(.s), 0.1),
   end_decline_prior = c(log(.e), 0.1),
-  chains = 6,
-   i0_prior = c(log(0.001),1),# SOMEONE CHECK THIS. setting to 0.001 worked before 
+  chains = 2,
+   i0_prior = c(log(0.01),1),# SOMEONE CHECK THIS. setting to 0.001 worked before
   delay_shape = 1.53,
   delay_scale = 7.828,
-  N_pop=4951500,
-  pars = c(N = 4951500, D = 5, k1 = 1/5, k2 = 1,
-    q = 0.05, r = 0.1, ur = covidseir:::getu(0.95, r = 0.1), f0 = 1)) # leaving this 
+  N_pop=4951500)
+  # pars = c(D = 5, k1 = 1/5, k2 = 1,
+  #   q = 0.05, r = 0.1, ur = covidseir:::getu(0.95, r = 0.1), f0 = 1)) # leaving this
 print(fit)
 
 nz$day <- seq_len(nrow(nz))
