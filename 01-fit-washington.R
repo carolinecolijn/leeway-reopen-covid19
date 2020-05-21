@@ -38,8 +38,15 @@ lines(wa$date, wa$tests/10, col = "blue")
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 wa$value
-stopifnot(unique(wa$value[57:58]) == 0)
-wa$value[57:58] <- NA
+stopifnot(wa$value[77] == 30)
+wa$value[77] <- NA
+
+stopifnot(wa$value[78] == 5)
+wa$value[78] <- NA
+
+stopifnot(wa$value[79] == -157)
+wa$value[79] <- NA
+
 wa$value
 
 fit_file <- file.path(this_folder, "data-generated/WA-fit.rds")
@@ -58,7 +65,7 @@ if (!file.exists(fit_file)) {
 } else {
   fit <- readRDS(fit_file)
 }
-fit
+print(fit)
 # p <- covidseir::project_seir(fit, iter = 1:100)
 # covidseir::tidy_seir(p) %>%
 #   covidseir::plot_projection(wa) +
