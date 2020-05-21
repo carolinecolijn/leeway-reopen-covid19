@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Read and prepare data -----------------------------------------------------
 
 #dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(here(this_folder,"data-raw/CAN.csv"))
+dat <- readr::read_csv(paste0(this_folder,"data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Ontario")
 # View(dat)
@@ -44,7 +44,7 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
 
-saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
+saveRDS(dat, paste0(this_folder, "data-generated/ON-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -52,7 +52,7 @@ saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- here(this_folder, "data-generated/ON-fit.rds")
+fit_file <- paste0(this_folder, "data-generated/ON-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
@@ -74,24 +74,24 @@ make_traceplot(fit)
 
 # Check fit -----------------------------------------------------------------
 
-proj <- covidseir::project_seir(fit, iter = 1:3, forecast_days = 20)
-proj_tidy <- covidseir::tidy_seir(proj)
-
-proj_tidy %>%
-  covidseir::plot_projection(dat)
-
-proj_tidy %>%
-  covidseir::plot_projection(dat) +
-  scale_y_log10()
+# proj <- covidseir::project_seir(fit, iter = 1:3, forecast_days = 20)
+# proj_tidy <- covidseir::tidy_seir(proj)
+#
+# proj_tidy %>%
+#   covidseir::plot_projection(dat)
+#
+# proj_tidy %>%
+#   covidseir::plot_projection(dat) +
+#   scale_y_log10()
 
 # Calculate threshold for increase ------------------------------------------
 
 # Need to pick reasonable f(s) values for a reasonable time span
 # such that fitting a linear regression makes sense.
 # Make sure the plot that comes out of this is linear:
-threshold <- get_thresh(fit)
-saveRDS(threshold,
-  here(this_folder, "data-generated/ON-threshold.rds"))
+# threshold <- get_thresh(fit)
+# saveRDS(threshold,
+#   here(this_folder, "data-generated/ON-threshold.rds"))
 
 # # Quick plot:
 # hist(fit$post$f_s[,1],
