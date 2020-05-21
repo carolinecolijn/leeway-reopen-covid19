@@ -26,18 +26,20 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 # Minimum is: a column with cases named "value", a column named "date", a column named "day".
-dat <- readr::read_csv(paste0(this_folder,"data-raw/US.csv"))
+dat <- readr::read_csv(paste0(this_folder, "data-raw/US.csv"))
 dat$date <- lubridate::ymd(dat$date)
 dat <- dplyr::rename(dat, daily_cases = "positiveIncrease")
 dat <- dplyr::filter(dat, state == "MI") %>%
   dplyr::arrange(date)
- # column positive is cumulative cases, column positiveIncrease is daily cases
- # except 2020-03-01 is NA for MI (9 cumulative cases on that date, but with 9
- # more the next day just including all 9 as being on 2020-03-01, since quite
- # feasible and can then start on 2020-03-01). Cumulative count on 2020-05-19
- # agrees with @MichiganHHS Tweet.
-dat[dat$date == "2020-03-01", "daily_cases"] = dat[dat$date == "2020-03-01",
-                                             "positive"]
+# column positive is cumulative cases, column positiveIncrease is daily cases
+# except 2020-03-01 is NA for MI (9 cumulative cases on that date, but with 9
+# more the next day just including all 9 as being on 2020-03-01, since quite
+# feasible and can then start on 2020-03-01). Cumulative count on 2020-05-19
+# agrees with @MichiganHHS Tweet.
+dat[dat$date == "2020-03-01", "daily_cases"] <- dat[
+  dat$date == "2020-03-01",
+  "positive"
+]
 dat <- dplyr::select(dat, date, daily_cases, daily_tests = totalTestResultsIncrease)
 
 # Increase in daily tests through, but low numbers on some days that looks like
@@ -47,12 +49,13 @@ dat <- dplyr::select(dat, date, daily_cases, daily_tests = totalTestResultsIncre
 # Data are noisy, do three-day running average:
 dat <- dat %>%
   dplyr::mutate(daily_cases_smooth = zoo::rollmean(daily_cases,
-                                                   k = 3,
-                                                   fill = NA))
-dat[1, "daily_cases_smooth"] = mean(dat[1:2, ]$daily_cases)   # Use two-day average
-                                                          #  for day 1 and final day:
-dat[nrow(dat), "daily_cases_smooth"] = mean(dat[(nrow(dat)-1):nrow(dat), ]$daily_cases)
-dat$value <- round(dat$daily_cases_smooth)   # Use rounded value for fitting and plotting
+    k = 3,
+    fill = NA
+  ))
+dat[1, "daily_cases_smooth"] <- mean(dat[1:2, ]$daily_cases) # Use two-day average
+#  for day 1 and final day:
+dat[nrow(dat), "daily_cases_smooth"] <- mean(dat[(nrow(dat) - 1):nrow(dat), ]$daily_cases)
+dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
 
 # View(dat)
 
@@ -68,17 +71,7 @@ ggplot(dat, aes(date, value)) +
 dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-01"))
 dat$day <- seq_len(nrow(dat))
 
-
-# ON: Try redistributing Apr 01 bump:
-# dat$adjust_cases <- dat$cases
-# excess <- (dat[32,]$cases - dat[33,]$cases)/5
-# dat[32,]$adjust_cases <- dat[33,]$cases
-# dat[27:31,]$adjust_cases <- round(dat[27:31,]$cases + excess)
-# dat$value <- dat$adjust_cases # for plotting function
-# ggplot(dat, aes(day, value)) +
-#   geom_point()
-
-saveRDS(dat, here(this_folder, "data-generated/MI-dat.rds"))
+saveRDS(dat, file.path(this_folder, "data-generated/MI-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -86,19 +79,19 @@ saveRDS(dat, here(this_folder, "data-generated/MI-dat.rds"))
 # x <- seq(0, 10, length.out = 200)
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- paste0(this_folder, "data-generated/MI-fit.rds")
+fit_file <- file.path(this_folder, "data-generated/MI-fit.rds")
 
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
-                      daily_cases = dat$value,
-                      samp_frac_fixed = rep(0.2, nrow(dat)),
-                      i0_prior = c(log(1), 0.5),
-                      start_decline_prior = c(log(9), 0.1),
-                      end_decline_prior = c(log(29), 0.1),
-                      N_pop = 9.986857e6,
-                      chains = CHAINS,
-                      iter = ITER
-                    )
+    daily_cases = dat$value,
+    samp_frac_fixed = rep(0.2, nrow(dat)),
+    i0_prior = c(log(1), 0.5),
+    start_decline_prior = c(log(9), 0.1),
+    end_decline_prior = c(log(29), 0.1),
+    N_pop = 9.986857e6,
+    chains = CHAINS,
+    iter = ITER
+  )
   saveRDS(fit, fit_file)
 } else {
   fit <- readRDS(fit_file)
