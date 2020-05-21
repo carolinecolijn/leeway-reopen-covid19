@@ -38,10 +38,12 @@ fit_file <- file.path(this_folder, "data-generated/BE-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$daily_cases,
-    samp_frac_fixed = rep(0.2, nrow(dat)),
-    i0_prior = c(log(1), 1),
-    start_decline_prior = c(log(9), 0.2),
-    end_decline_prior = c(log(17), 0.2),
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
+    i0_prior = i0_PRIOR,
+    start_decline_prior = c(log(get_google_start("Belgium", dat)), 0.2),
+                                            # = log(8), original was log(9)
+    end_decline_prior = c(log(get_google_end("Belgium", dat)), 0.2),
+                                            # = log(18), original was log(17)
     N_pop = 11476279,
     chains = CHAINS,
     iter = ITER
