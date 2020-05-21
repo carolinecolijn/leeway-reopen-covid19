@@ -91,14 +91,12 @@ fit_file <- file.path(this_folder, "data-generated/NY-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
-    samp_frac_fixed = samp_frac_fixed,
-    time_increment = 0.1,
-    R0_prior = c(log(2.6), 0.2),
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)), # samp_frac_fixed,
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(.s), 0.2),
-    end_decline_prior = c(log(.e), 0.2),
-    i0_prior = c(log(1), 0.5),
+    start_decline_prior = c(log(get_google_start("New York", dat)), 0.2), # c(log(.s), 0.2),
+    end_decline_prior = c(log(get_google_end("New York", dat)), 0.2),     # c(log(.e), 0.2),
+    i0_prior = i0_PRIOR,
     N_pop = 19.45e6
   )
   saveRDS(fit, fit_file)
