@@ -3,10 +3,12 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 
+# Runs and saves two versions, before and after Cargill
+
 # Read and prepare data -----------------------------------------------------
 
 #dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(here(this_folder,"data-raw/CAN.csv"))
+dat <- readr::read_csv(paste0(this_folder,"data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Alberta")
 # View(dat)
@@ -41,8 +43,8 @@ dat1$daily_cases = dat1$cases
 dat2$daily_cases = dat2$cases
 
 
-# saveRDS(dat, here(this_folder, "data-generated/AB-dat.rds"))
-# saveRDS(dat, "AB-dat.rds") # here() was not working; did not have data-generated; saved in contact-ratios/
+saveRDS(dat1, paste0(this_folder, "data-generated/AB-dat1.rds"))
+saveRDS(dat2, paste0(this_folder, "data-generated/AB-dat2.rds"))
 
 absampling1 = rep(0.2,nrow(dat1)) # there was a testing breakpoint at about apr14 anyway
 absampling2 = rep(0.4, nrow(dat2))
@@ -54,64 +56,83 @@ absampling2 = rep(0.4, nrow(dat2))
 # x <- seq(0, 10, length.out = 200)
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
-fit1 <- covidseir::fit_seir(
-  daily_cases = dat1$daily_cases,
-#  samp_frac_fixed = absampling,
-samp_frac_fixed = absampling1,
-  i0_prior = c(log(1), 0.5),
-  start_decline_prior = c(log(15), 0.2), # without Cargill: March 15 to 22, model starts March 1
-  end_decline_prior = c(log(22), 0.2),
-  N_pop = 4.4e6, # population of AB
-  chains = 4,
-  iter = 600
-)
-# save(fit1, file = "~/Dropbox/Transmission/nCov2019/abfit1test.Rdata")
+# Fit dat1:
+fit_file1 <- paste0(this_folder, "data-generated/AB-fit1.rds")
+if (!file.exists(fit_file1)) {
+  fit1 <- covidseir::fit_seir(
+                       daily_cases = dat1$daily_cases,
+                       samp_frac_fixed = absampling1,
+                       i0_prior = c(log(1), 0.5),
+                       start_decline_prior = c(log(15), 0.2), # without Cargill:
+                           # March 15 to 22, model starts March 1
+                       end_decline_prior = c(log(22), 0.2),
+                       N_pop = 4.4e6, # population of AB
+                       chains = CHAINS,
+                       iter = ITER
+                     )
+  saveRDS(fit1, fit_file1)
+} else {
+  fit1 <- readRDS(fit_file1)
+}
 
-fit2 <- covidseir::fit_seir(
-  daily_cases = dat2$daily_cases,
-  samp_frac_fixed = absampling2,
-  i0_prior = c(log(10), 0.5),
-  start_decline_prior = c(log(6), 0.1), # without Cargill: March 15 to 22, model starts March 1
-  end_decline_prior = c(log(7), 0.1),
-  N_pop = 15000, # population of Cargill + families and friends. A guess.
-  chains = 4,
-  iter = 600
-)
+print(fit1)
+make_traceplot(fit1)
 
-print(fit)
-make_traceplot(fit)
-saveRDS(fit, here(this_folder, "data-generated/AB-fit.rds"))
-saveRDS(fit, "selfIsolationModel/contact-ratios/AB-fit.rds")
+# Fit dat2:
+
+fit_file2 <- paste0(this_folder, "data-generated/AB-fit2.rds")
+if (!file.exists(fit_file2)) {
+  fit2 <- covidseir::fit_seir(
+                       daily_cases = dat2$daily_cases,
+                       samp_frac_fixed = absampling2,
+                       i0_prior = c(log(10), 0.5),
+                       start_decline_prior = c(log(6), 0.1), # without Cargill:
+                            # March 15 to 22, model starts March 1
+                       end_decline_prior = c(log(7), 0.1),
+                       N_pop = 15000, # population of Cargill + families and
+                                      # friends. A guess.
+                       chains = CHAINS,
+                       iter = ITER
+                     )
+  saveRDS(fit2, fit_file2)
+} else {
+  fit2 <- readRDS(fit_file2)
+}
+
+print(fit2)
+make_traceplot(fit2)
 
 # Check fit -----------------------------------------------------------------
-proj1 <- covidseir::project_seir(fit1, iter = 1:50, forecast_days = 30)
-proj2 <- covidseir::project_seir(fit2, iter = 1:50, forecast_days = 30)
-
-proj_tidy1 <- covidseir::tidy_seir(proj1)
-proj_tidy2 <- covidseir::tidy_seir(proj2)
-
-proj_tidy1 %>%
-  covidseir::plot_projection(dat1)
-
-proj_tidy2 %>%
-  covidseir::plot_projection(dat2)
+# proj1 <- covidseir::project_seir(fit1, iter = 1:50, forecast_days = 30)
+# proj2 <- covidseir::project_seir(fit2, iter = 1:50, forecast_days = 30)
 
 
-proj_tidy %>%
-  covidseir::plot_projection(dat) +
-  scale_y_log10()
+# proj_tidy1 <- covidseir::tidy_seir(proj1)
+# proj_tidy2 <- covidseir::tidy_seir(proj2)
 
-# Calculate threshold for increase ------------------------------------------
-
-# Need to pick reasonable f(s) values for a reasonable time span
-# such that fitting a linear regression makes sense.
-# Make sure the plot that comes out of this is linear:
-threshold <- get_thresh(fit, iter = 1:50,
-  forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
-round(threshold, 2)
-saveRDS(threshold, here(this_folder, "data-generated/ON-threshold.rds"))
-
-# Quick plot:
-hist(fit$post$f_s[,1],
-  main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
-abline(v = threshold, col = "red", lwd = 2)
+# proj_tidy1 %>%
+#   covidseir::plot_projection(dat1)
+#
+# proj_tidy2 %>%
+#   covidseir::plot_projection(dat2)
+#
+#
+# proj_tidy %>%
+#   covidseir::plot_projection(dat) +
+#   scale_y_log10()
+#
+# # Calculate threshold for increase ------------------------------------------
+#
+# # Need to pick reasonable f(s) values for a reasonable time span
+# # such that fitting a linear regression makes sense.
+# # Make sure the plot that comes out of this is linear:
+# threshold <- get_thresh(fit, iter = 1:50,
+#   forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
+# round(threshold, 2)
+# saveRDS(threshold, paste0(this_folder, "data-generated/ON-threshold.rds"))
+#
+# # Quick plot:
+# hist(fit$post$f_s[,1],
+#   main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
+# abline(v = threshold, col = "red", lwd = 2)
+#
