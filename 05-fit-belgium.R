@@ -37,8 +37,8 @@ fit <- covidseir::fit_seir(
   daily_cases = dat$daily_cases,
   samp_frac_fixed = rep(0.2, nrow(dat)),
   i0_prior = c(log(1), 0.5),
-  start_decline_prior = c(log(10), 0.2),
-  end_decline_prior = c(log(50), 0.2),
+  start_decline_prior = c(log(9), 0.2),
+  end_decline_prior = c(log(17), 0.2),
   N_pop = 11476279,
   chains = 4,
   iter = 300
