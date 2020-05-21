@@ -75,13 +75,16 @@ print(fit)
 make_traceplot(fit)
 
 # Check fit -----------------------------------------------------------------
-#
-# proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 20)
-# proj_tidy <- covidseir::tidy_seir(proj)
-#
+# #
+# proj <- covidseir::project_seir(fit, iter = 1:150, forecast_days = 20)
+# proj_tidy <- covidseir::tidy_seir(proj, resample_y_rep = 150)
+# #
 # proj_tidy %>%
-#   covidseir::plot_projection(dat)
-#
+#   covidseir::plot_projection(dat) +
+#   ggsidekick::theme_sleek() +
+#   facet_null()
+# ggsave("~/Downloads/bc-test.svg", width = 5, height = 3.5)
+
 # proj_tidy %>%
 #   covidseir::plot_projection(dat) +
 #   scale_y_log10()
