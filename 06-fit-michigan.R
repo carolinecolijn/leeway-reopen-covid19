@@ -35,8 +35,9 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 # Read and prepare data -----------------------------------------------------
 # Minimum is: a column with cases named "value", a column named "date", a column named "day".
-dat_ON <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
+#dat_ON <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
+#dat <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
+dat <- readr::read_csv(here(this_folder,"data-raw/US.csv"))
 dat$date <- lubridate::ymd(dat$date)
 dat <- dplyr::rename(dat, daily_cases = "positiveIncrease")
 dat <- dplyr::filter(dat, state == "MI") %>%

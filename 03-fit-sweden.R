@@ -8,7 +8,8 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 
 # Read and prepare data -----------------------------------------------------
 
-dat <- readr::read_csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+#dat <- readr::read_csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+dat <- readr::read_csv(here(this_folder,"data-raw/EURO.csv"))
 dat$dateRep <- lubridate::dmy(dat$dateRep)
 dat <- dplyr::filter(dat, countriesAndTerritories == "Sweden")
 dat <- dat %>% rename(date = dateRep) %>% arrange(date)

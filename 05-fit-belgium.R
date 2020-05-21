@@ -4,8 +4,8 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Notes ---------------------------------------------------------------------
 
 # Read and prepare data -----------------------------------------------------
-#data <- is from https://epistat.wiv-isp.be/Covid/
-data <- readr::read_csv(here(this_folder,"data-raw/COVID19BE.csv"))
+#data <- readr::read_csv("https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv")
+data <- readr::read_csv(here(this_folder,"data-raw/BE.csv"))
 ggplot(data, aes(DATE, CASES)) +
   geom_bar(stat="identity")
 
