@@ -23,7 +23,7 @@ dir.create(here("selfIsolationModel/contact-ratios/data-raw/"),
   showWarnings = FALSE)
 
 # For the threshold function; need to get it into the package:
-source(here::here("selfIsolationModel/bc-cdc-forecasts/functions.R"))
+source(here("selfIsolationModel/contact-ratios/functions.R"))
 
 this_folder <- "selfIsolationModel/contact-ratios/"
 
@@ -33,3 +33,6 @@ make_traceplot <- function(fit) {
 }
 
 ymd <- lubridate::ymd
+
+ITER <- 200
+CHAINS <- 4

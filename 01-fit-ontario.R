@@ -52,24 +52,29 @@ saveRDS(dat, here(this_folder, "data-generated/ON-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
-fit <- covidseir::fit_seir(
-  daily_cases = dat$value,
-  samp_frac_fixed = rep(0.2, nrow(dat)),
-  i0_prior = c(log(1), 0.5),
-  start_decline_prior = c(log(12), 0.2),
-  end_decline_prior = c(log(30), 0.2),
-  N_pop = 14.5e6,
-  chains = 4,
-  iter = 300
-)
+fit_file <- here(this_folder, "data-generated/ON-fit.rds")
+if (!file.exists(fit_file)) {
+  fit <- covidseir::fit_seir(
+    daily_cases = dat$value,
+    samp_frac_fixed = rep(0.2, nrow(dat)),
+    i0_prior = c(log(1), 0.5),
+    start_decline_prior = c(log(12), 0.2),
+    end_decline_prior = c(log(30), 0.2),
+    N_pop = 14.5e6,
+    chains = CHAINS,
+    iter = ITER
+  )
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, here(this_folder, "data-generated/ON-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 
-proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
+proj <- covidseir::project_seir(fit, iter = 1:3, forecast_days = 20)
 proj_tidy <- covidseir::tidy_seir(proj)
 
 proj_tidy %>%
@@ -84,12 +89,11 @@ proj_tidy %>%
 # Need to pick reasonable f(s) values for a reasonable time span
 # such that fitting a linear regression makes sense.
 # Make sure the plot that comes out of this is linear:
-threshold <- get_thresh(fit, iter = 1:50,
-  forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
-round(threshold, 2)
-saveRDS(threshold, here(this_folder, "data-generated/ON-threshold.rds"))
+threshold <- get_thresh(fit)
+saveRDS(threshold,
+  here(this_folder, "data-generated/ON-threshold.rds"))
 
-# Quick plot:
-hist(fit$post$f_s[,1],
-  main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
-abline(v = threshold, col = "red", lwd = 2)
+# # Quick plot:
+# hist(fit$post$f_s[,1],
+#   main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
+# abline(v = threshold, col = "red", lwd = 2)
