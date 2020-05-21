@@ -49,15 +49,39 @@ wa$value[79] <- NA
 
 wa$value
 
+dat <- wa
+dat$daily_cases <- dat$value     # to save them
+# Data are noisy (looks to be a weekend effect), do three-day running average:
+dat <- dat %>%
+  dplyr::mutate(daily_cases_smooth = zoo::rollmean(value,
+    k = 3,
+    fill = NA
+  ))
+dat[1, "daily_cases_smooth"] <- mean(dat[1:2, ]$value) # Use two-day average
+#  for day 1, and for final day:
+dat[nrow(dat), "daily_cases_smooth"] <- mean(dat[(nrow(dat) - 1):nrow(dat), ]$value)
+# And for penultimate day due to NA's from dodgy data:
+stopifnot(is.na(dat[nrow(dat)-1, ]$daily_cases_smooth))   # take out next line if this errors
+dat[nrow(dat)-1, "daily_cases_smooth"] <- dat[nrow(dat), "daily_cases_smooth"] # mean of last two
+# And replace first NA (due to running mean that includes NA) by two-day average:
+stopifnot(is.na(dat[76, ]$daily_cases_smooth))   # take out next line if this errors
+dat[76, "daily_cases_smooth"] <- mean(dat[75:76, ]$daily_cases)  # 77 is NA
+
+dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
+dat$value
+
 fit_file <- file.path(this_folder, "data-generated/WA-fit.rds")
+
+
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
-    daily_cases = wa$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(wa)),
+    daily_cases = dat$value,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(get_google_start("Washington", wa)), 0.1),
-    end_decline_prior = c(log(get_google_end("Washington", wa)), 0.1),
+    start_decline_prior = c(log(get_google_start("Washington", dat)), 0.1),
+    end_decline_prior = c(log(get_google_end("Washington", dat)), 0.1),
+
     i0_prior = i0_PRIOR,
     N_pop = 7.6e6,
   )
@@ -71,4 +95,4 @@ print(fit)
 #   covidseir::plot_projection(wa) +
 #   scale_y_log10()
 
-saveRDS(wa, file = file.path(this_folder, "data-generated/WA-dat.rds"))
+saveRDS(dat, file = file.path(this_folder, "data-generated/WA-dat.rds"))
