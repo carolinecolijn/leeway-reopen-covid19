@@ -22,8 +22,8 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-#dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(paste0(this_folder,"data-raw/CAN.csv"))
+# dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
+dat <- readr::read_csv(paste0(this_folder, "data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Ontario")
 # View(dat)
@@ -37,9 +37,9 @@ ggplot(dat, aes(date, cases)) +
 
 # Try redistributing Apr 01 bump:
 dat$adjust_cases <- dat$cases
-excess <- (dat[32,]$cases - dat[33,]$cases)/5
-dat[32,]$adjust_cases <- dat[33,]$cases
-dat[27:31,]$adjust_cases <- round(dat[27:31,]$cases + excess)
+excess <- (dat[32, ]$cases - dat[33, ]$cases) / 5
+dat[32, ]$adjust_cases <- dat[33, ]$cases
+dat[27:31, ]$adjust_cases <- round(dat[27:31, ]$cases + excess)
 dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
@@ -57,7 +57,7 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
     samp_frac_fixed = rep(0.2, nrow(dat)),
-    i0_prior = c(log(1), 0.5),
+    i0_prior = c(log(1), 1),
     start_decline_prior = c(log(12), 0.2),
     end_decline_prior = c(log(30), 0.2),
     N_pop = 14.5e6,

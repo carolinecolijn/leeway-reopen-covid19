@@ -57,7 +57,7 @@ plot(new_york$day, new_york$value, type = "o")
 plot(new_york$day, new_york$tests, type = "o")
 plot(new_york$date, new_york$value, type = "l")
 lines(new_york$date, new_york$hospitalized, col = "red")
-lines(new_york$date, new_york$tests/10, col = "blue")
+lines(new_york$date, new_york$tests / 10, col = "blue")
 
 .s <- as.numeric(ymd("2020-03-13") - min(new_york$date))
 .e <- as.numeric(ymd("2020-03-28") - min(new_york$date))
@@ -89,17 +89,18 @@ saveRDS(dat, file.path(this_folder, "data-generated/NY-dat.rds"))
 
 fit_file <- file.path(this_folder, "data-generated/NY-fit.rds")
 if (!file.exists(fit_file)) {
-  fit <- covidseir::fit_seir(daily_cases = dat$value,
-                             samp_frac_fixed = samp_frac_fixed,
-                             time_increment = 0.1,
-                             R0_prior = c(log(2.6), 0.2),
-                             iter = ITER,
-                             chains = CHAINS,
-                             start_decline_prior = c(log(.s), 0.2),
-                             end_decline_prior = c(log(.e), 0.2),
-                             i0_prior = c(log(1), 0.5),
-                             N_pop=19.45e6
-                             )
+  fit <- covidseir::fit_seir(
+    daily_cases = dat$value,
+    samp_frac_fixed = samp_frac_fixed,
+    time_increment = 0.1,
+    R0_prior = c(log(2.6), 0.2),
+    iter = ITER,
+    chains = CHAINS,
+    start_decline_prior = c(log(.s), 0.2),
+    end_decline_prior = c(log(.e), 0.2),
+    i0_prior = c(log(1), 0.5),
+    N_pop = 19.45e6
+  )
   saveRDS(fit, fit_file)
 } else {
   fit <- readRDS(fit_file)
