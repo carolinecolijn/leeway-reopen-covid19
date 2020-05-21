@@ -34,3 +34,18 @@ dmy <- lubridate::dmy
 
 ITER <- 200
 CHAINS <- 4
+SAMP_FRAC <- 0.2
+i0_PRIOR <- c(log(1), 1)
+
+goog_dat <- readr::read_csv("selfIsolationModel/google_data/start-end-google.csv")
+get_google_start <- function(.region, .dat) {
+  .s <- dplyr::filter(goog_dat, region == .region) %>%
+    pull(start_date)
+  as.numeric(.s - min(.dat$date))
+}
+
+get_google_end <- function(.region, .dat) {
+  .s <- dplyr::filter(goog_dat, region == .region) %>%
+    pull(end_date)
+  as.numeric(.s - min(.dat$date))
+}
