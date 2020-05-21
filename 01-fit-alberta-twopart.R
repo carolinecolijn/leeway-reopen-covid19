@@ -3,7 +3,6 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 
-
 # Read and prepare data -----------------------------------------------------
 
 #dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
@@ -70,7 +69,6 @@ samp_frac_fixed = absampling1,
 
 fit2 <- covidseir::fit_seir(
   daily_cases = dat2$daily_cases,
-  #  samp_frac_fixed = absampling,
   samp_frac_fixed = absampling2,
   i0_prior = c(log(10), 0.5),
   start_decline_prior = c(log(6), 0.1), # without Cargill: March 15 to 22, model starts March 1
@@ -79,19 +77,15 @@ fit2 <- covidseir::fit_seir(
   chains = 4,
   iter = 600
 )
-# save(fit2, file = "~/Dropbox/Transmission/nCov2019/abfit1test.Rdata")
-
-
-
 
 print(fit)
 make_traceplot(fit)
 saveRDS(fit, here(this_folder, "data-generated/AB-fit.rds"))
 saveRDS(fit, "selfIsolationModel/contact-ratios/AB-fit.rds")
+
 # Check fit -----------------------------------------------------------------
 proj1 <- covidseir::project_seir(fit1, iter = 1:50, forecast_days = 30)
 proj2 <- covidseir::project_seir(fit2, iter = 1:50, forecast_days = 30)
-
 
 proj_tidy1 <- covidseir::tidy_seir(proj1)
 proj_tidy2 <- covidseir::tidy_seir(proj2)
