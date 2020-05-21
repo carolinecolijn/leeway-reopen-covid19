@@ -61,14 +61,13 @@ fit_file <- paste0(this_folder, "data-generated/CA-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = ca$value,
-    samp_frac_fixed = rep(0.2, nrow(ca)),
-    R0_prior = c(log(2.6), 0.2),
-    iter = ITER,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(ca)),
+    start_decline_prior = c(log(get_google_start("California", dat)), 0.2), #c(log(.s), 0.2),
+    end_decline_prior = c(log(get_google_end("California", dat)), 0.2), # c(log(.e), 0.2),
+    i0_prior = i0_PRIOR,
+    N_pop = 39.51e6,
     chains = CHAINS,
-    start_decline_prior = c(log(.s), 0.2),
-    end_decline_prior = c(log(.e), 0.2),
-    i0_prior = c(log(1), 1),
-    N_pop = 39.51e6
+    iter = ITER
   )
   saveRDS(fit, fit_file)
 } else {
