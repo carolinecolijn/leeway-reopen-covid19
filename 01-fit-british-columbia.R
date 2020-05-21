@@ -43,7 +43,7 @@ dat$day <- seq_along(dat$date)
 
 saveRDS(dat, file.path(this_folder, "data-generated/BC-dat.rds"))
 
-samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.37, 11))
+samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.21, 11))
 samp_frac <- c(samp_frac, rep(0.37, nrow(dat) - length(samp_frac)))
 samp_frac
 plot(dat$date, samp_frac)
@@ -58,7 +58,7 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
     samp_frac_fixed = samp_frac, # from hospital fit
-    i0_prior = c(log(8), 0.5),
+    i0_prior = c(log(8), 1),
     e_prior = c(0.8, 0.05),
     start_decline_prior = c(log(15), 0.1),
     end_decline_prior = c(log(22), 0.1),
