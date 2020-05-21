@@ -94,8 +94,8 @@ if (!file.exists(fit_file)) {
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)), # samp_frac_fixed,
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(get_google_start("New York", dat)), 0.2), # c(log(.s), 0.2),
-    end_decline_prior = c(log(get_google_end("New York", dat)), 0.2),     # c(log(.e), 0.2),
+    start_decline_prior = c(log(get_google_start("New York", dat)), 0.1), # c(log(.s), 0.2),
+    end_decline_prior = c(log(get_google_end("New York", dat)), 0.1),     # c(log(.e), 0.2),
     i0_prior = i0_PRIOR,
     N_pop = 19.45e6
   )

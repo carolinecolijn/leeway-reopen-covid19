@@ -36,6 +36,7 @@ ITER <- 200
 CHAINS <- 4
 SAMP_FRAC <- 0.2
 i0_PRIOR <- c(log(1), 1)
+RAMP_SD
 
 goog_dat <- readr::read_csv("selfIsolationModel/google_data/start-end-google.csv")
 get_google_start <- function(.region, .dat) {
