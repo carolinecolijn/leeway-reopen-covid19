@@ -18,19 +18,22 @@ files
 .names <- list.files(file.path(this_folder, "data-generated"), pattern = "*fit*") %>%
   gsub("-fit[0-9]*\\.rds", "", .)
 .names[.names == "AB"] <- paste0(.names[.names == "AB"], c(1, 2))
+.names
 fits <- map(files, readRDS) %>% set_names(.names)
 fits
 
 dat_files <- list.files(file.path(this_folder, "data-generated"), pattern = "*dat*", full.names = TRUE)
 dat_files
+dat_files <- dat_files[c(3, 4, 5, 6)]
 .names <- list.files(file.path(this_folder, "data-generated"), pattern = "*dat*") %>%
   gsub("-dat[0-9]*\\.rds", "", .)
 .names
 .names[.names == "AB"] <- paste0(.names[.names == "AB"], c(1, 2))
+.names <- .names[c(3, 4, 5, 6)]
+.names
 
 observed_data <- map(dat_files, readRDS) %>% set_names(.names)
 observed_data
-
 
 projections <- map(fits, covidseir::project_seir, iter = 1:50, forecast_days = 30)
 
