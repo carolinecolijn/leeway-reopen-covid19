@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # https://en.wikipedia.org/wiki/COVID-19_pandemic_in_New_Zealand#Requirements
 # Ardern announced that, effective 01:00 on 16 March, all travellers arriving in or returning to New Zealand from outside of the country must self-isolate for 14 days.
@@ -20,7 +20,7 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 #   # geom_vline(xintercept = ymd("2020-03-24")) +
 #   geom_vline(xintercept = ymd("2020-03-27"))
 
-d <- readr::read_csv(here(this_folder, "data-raw/covid-cases-7may20-NZ.csv"), skip = 3)
+d <- readr::read_csv(file.path(this_folder, "data-raw/covid-cases-confirmed-22may20-NZ.csv"), skip = 3)
 d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas travel`) %>%
   select(date, overseas) %>%
   mutate(date = dmy(date)) %>%
@@ -108,4 +108,4 @@ nz$value <- nz$not_overseas_cases
 # source(here::here("analysis/plot_projection_w_inset.R"))
 # plot_projection_w_inset(p, nz, obj = fit)
 
-saveRDS(nz, file = here::here("data-generated/nz-dat.rds"))
+saveRDS(nz, file = file.path("data-generated/nz-dat.rds"))

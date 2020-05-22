@@ -54,7 +54,7 @@ fit <- covidseir::fit_seir(
   chains = CHAINS,
   iter = ITER,
   pars = c(D = 5, k1 = 1/5, k2 = 1,
-    q = 0.05, r = 0.1, ur = covidseir:::getu(0.6, r = 0.1), f0 = 1)
+    q = 0.05, ud = 0.1, ur = covidseir:::getu(0.6, r = 0.1), f0 = 1)
 )
 
 print(fit)

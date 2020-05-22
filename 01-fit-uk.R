@@ -18,7 +18,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 # Read and prepare data -----------------------------------------------------
 
 # dat <- readr::read_csv("https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-totals-uk.csv")
-dat <- readr::read_csv(here(this_folder, "data-raw/UK.csv"))
+dat <- readr::read_csv(file.path(this_folder, "data-raw/UK.csv"))
 dat <- rename(dat, date = Date)
 dat$cases <- c(dat$ConfirmedCases[1], diff(dat$ConfirmedCases))
 dat$daily_tests <- c(dat$Tests[1], diff(dat$Tests))

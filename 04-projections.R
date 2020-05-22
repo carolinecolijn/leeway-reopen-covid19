@@ -7,7 +7,7 @@ dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC", "CA", "MI", "NY", "ON", "QC", "WA")
+REGIONS <- c("BC", "CA", "DE", "MI", "NY", "ON", "QC", "WA")
 N_ITER <- CHAINS * ITER / 2
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
@@ -39,7 +39,7 @@ ITER_PROJ <- sample(seq_len(N_ITER), 150) # downsample for speed
 
 projections_multi <- map(names(fits), function(.x) {
   cat(.x, "\n")
-  days <- length(observed_data_orig[[.x]]$day)
+  days <- length(observed_data[[.x]]$day)
   covidseir::project_seir(
     fits[[.x]],
     iter = ITER_PROJ,
