@@ -1,0 +1,240 @@
+source("selfIsolationModel/contact-ratios/model-prep.R")
+library(purrr)
+library(future)
+future::plan(future::multisession)
+
+dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
+fig_folder <- "selfIsolationModel/contact-ratios/figs/"
+dir.create(dg_folder, showWarnings = FALSE)
+dir.create(fig_folder, showWarnings = FALSE)
+REGIONS <- c("BC", "CA", "MI", "NY", "ON", "QC", "WA")
+N_ITER <- CHAINS * ITER / 2
+
+obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
+obj_files
+
+fits <- map(obj_files, readRDS) %>% set_names(REGIONS)
+map(fits, print)
+
+dat_files <- paste0(dg_folder, REGIONS, "-dat.rds")
+dat_files
+
+observed_data <- map(dat_files, readRDS) %>%
+  set_names(REGIONS) %>%
+  map(select, date, day, value)
+observed_data <- map(seq_along(observed_data), function(.x) {
+  temp <- observed_data[[.x]]
+  temp$region <- REGIONS[[.x]]
+  temp
+}) %>% set_names(REGIONS)
+observed_data
+
+# Multiplicative projection: ------------------------------------------------
+
+PROJ <- 60 # days
+set.seed(274929)
+
+F_MULTI <- 1.2
+ITER_PROJ <- sample(seq_len(N_ITER), 150) # downsample for speed
+
+projections_multi <- map(names(fits), function(.x) {
+  cat(.x, "\n")
+  days <- length(observed_data_orig[[.x]]$day)
+  covidseir::project_seir(
+    fits[[.x]],
+    iter = ITER_PROJ,
+    forecast_days = PROJ,
+    f_fixed_start = days + 1,
+    f_multi = rep(F_MULTI, PROJ)
+  )
+}) %>% set_names(REGIONS)
+
+saveRDS(projections_multi, file = file.path(dg_folder, "all-projections-multi-1.2.rds"))
+projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds"))
+
+tidy_projections <- furrr::future_map(
+  projections_multi, custom_tidy_seir, resample_y_rep = 100)
+tidy_projections <- tidy_projections %>% .[order(names(.))]
+observed_data <- observed_data %>% .[order(names(.))]
+observed_data <- observed_data[names(tidy_projections)] # in case some removed
+stopifnot(identical(names(tidy_projections), names(observed_data)))
+
+date_look_up <- tibble(
+  date = seq(
+    min(observed_data[["ON"]]$date),
+    min(observed_data[["ON"]]$date) + max(projections_multi$ON$day),
+    by = "1 day"
+  ),
+  day = seq(1, max(projections_multi$ON$day) + 1)
+)
+
+plots <- map2(tidy_projections, observed_data, function(x, obs) {
+  pred <- left_join(date_look_up, x, by = "day")
+  pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
+  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+    ggtitle(unique(obs$region)) +
+    coord_cartesian(expand = FALSE,
+      xlim = c(lubridate::ymd("2020-03-01"),
+      lubridate::ymd("2020-07-15")))
+})
+
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
+ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
+  width = 14, height = 5.5, plot = g)
+ggsave(file.path(fig_folder, "projections-all-1.2.png"),
+  width = 14, height = 5.5, plot = g)
+
+plots <- map2(tidy_projections, observed_data, function(x, obs) {
+  pred <- left_join(date_look_up, x, by = "day")
+  pred <- dplyr::filter(pred, date <= max(obs$date))
+  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+    ggtitle(unique(obs$region)) +
+    coord_cartesian(expand = FALSE,
+      xlim = c(lubridate::ymd("2020-03-01"),
+        lubridate::ymd("2020-07-15")))
+})
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
+ggsave(file.path(fig_folder, "projections-all.pdf"),
+  width = 14, height = 5.5, plot = g)
+ggsave(file.path(fig_folder, "projections-all.png"),
+  width = 14, height = 5.5, plot = g)
+
+plots <- map2(tidy_projections, observed_data, function(x, obs) {
+  pred <- left_join(date_look_up, x, by = "day")
+  pred <- dplyr::filter(pred, date <= max(obs$date))
+  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+    ggtitle(unique(obs$region)) +
+    coord_cartesian(expand = FALSE,
+      xlim = c(lubridate::ymd("2020-03-01"),
+        lubridate::ymd("2020-05-21")))
+})
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
+ggsave(file.path(fig_folder, "projections-all2.pdf"),
+  width = 14, height = 5.5, plot = g)
+ggsave(file.path(fig_folder, "projections-all2.png"),
+  width = 14, height = 5.5, plot = g)
+
+# Histograms ----------------------------------------------------------------
+
+# ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
+ITER <- 1:400 # downsample for speed
+thresholds <- map(fits, get_thresh, iter = ITER)
+saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
+thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
+# check:
+thresholds %>% bind_rows(.id = "ignore") %>% tidyr::pivot_longer(-1) %>%
+  ggplot(aes(value)) + geom_histogram() + facet_wrap(~name)
+
+f2 <- map(fits, ~ .x$post$f_s[ITER, 1])
+# check:
+f2 %>% bind_rows(.id = "ignore") %>% tidyr::pivot_longer(-1) %>%
+  ggplot(aes(value)) + geom_histogram() + facet_wrap(~name)
+
+ratios <- map2_dfr(thresholds, f2, ~ tibble(ratio = .y / .x), .id = "region")
+ggplot(ratios, aes(ratio)) +
+  facet_wrap(~region) +
+  geom_histogram() +
+  geom_vline(xintercept = 1, lty = 2) +
+  ggsidekick::theme_sleek()
+
+q <- quantile(ratios$ratio, probs = c(0, 1))
+breaks <- seq(q[1], q[2], length.out = 25)
+
+make_hist <- function(df) {
+  region <- gsub("1", "", unique(df$region))
+  ggplot(df) +
+    ylab("Density") +
+    geom_histogram(
+      breaks = breaks, aes(x = ratio, y = ..density..),
+      fill = "#377EB8", alpha = .75, colour = "grey90", lwd = 0.3
+    ) +
+    geom_vline(xintercept = 1, lty = 2, col = "grey60") +
+    coord_cartesian(xlim = range(breaks), expand = FALSE) +
+    xlab("Contact ratio") +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.y.left = element_blank()) +
+    theme(axis.text.y.left = element_blank()) +
+    theme(axis.ticks.y.left = element_blank()) +
+    theme(plot.margin = margin(t = 11 / 2, r = 13, b = 11 / 2, l = 13)) +
+    ggtitle(region)
+}
+
+hists <- group_split(ratios, region) %>%
+  map(make_hist)
+g <- cowplot::plot_grid(plotlist = hists, align = "hv")
+ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
+ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
+
+# Violin plots: -------------------------------------------------------------
+
+ratios %>%
+  ggplot(aes(x = region, y = ratio)) +
+  geom_violin() +
+  coord_flip() +
+  ggsidekick::theme_sleek() +
+  geom_hline(yintercept = 1)
+
+# Example projections at multiple levels for one region: --------------------
+
+PROJ <- 60
+set.seed(12898221)
+ITER_PROJ <- sample(seq_len(N_ITER), 150) # downsample for speed
+PROV <- "ON"
+mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
+
+projections_select <- furrr::future_map(mults, function(.x) {
+  cat(.x, "\n")
+  days <- length(observed_data_orig[[PROV]]$day)
+  covidseir::project_seir(
+    fits[[PROV]],
+    iter = ITER_PROJ,
+    forecast_days = PROJ,
+    f_fixed_start = days + 1,
+    f_multi = rep(.x, PROJ)
+  )
+}) %>% set_names(as.character(mults))
+tidy_projections <- furrr::future_map(
+  projections_select,
+  custom_tidy_seir,
+  resample_y_rep = 150
+)
+custom_projection_plot2 <- function(pred_dat, obs_dat) {
+  g <- ggplot(pred_dat, aes(x = date)) +
+    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = frac),
+      alpha = 0.25) +
+    # geom_ribbon(aes(ymin = y_rep_0.25, ymax = y_rep_0.75, fill = frac),
+    #   alpha = 0.2) +
+    geom_line(aes(y = y_rep_0.50, col = frac), lwd = 0.9) +
+    scale_colour_viridis_d(end = 0.95) +
+    scale_fill_viridis_d(end = 0.95) +
+    coord_cartesian(expand = FALSE, xlim = range(out$date), ylim = c(0, 2000)) +
+    ylab("Reported cases") +
+    theme(axis.title.x = element_blank())
+  g <- g +
+    geom_line(
+      data = obs_dat,
+      col = "black", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      lwd = 0.35, alpha = 0.9
+    ) +
+    geom_point(
+      data = obs_dat,
+      col = "grey30", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      pch = 21, fill = "grey95", size = 1.25
+    ) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.x.bottom = element_blank()) +
+    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction")
+  g
+}
+
+out <- tidy_projections %>% bind_rows(.id = "frac")
+out <- left_join(date_look_up, out, by = "day")
+out <- filter(out, !is.na(frac)) # 1 extra date sometimes?
+obs <- observed_data[[PROV]]
+g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
+  ggtitle(unique(obs$region))
+g
+ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
+ggsave(file.path(fig_folder, "proj-ON-fractions.png"), width = 5.5, height = 3.5, plot = g)
