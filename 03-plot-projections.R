@@ -1,6 +1,8 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 library(purrr)
 
+N_ITER <- length(fits[["QC"]]$post$R0)
+
 .names <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")
 
 obj_files <- paste0(
@@ -39,8 +41,9 @@ observed_data <- map(observed_data, mutate,
 
 # Multiplicative projection:
 
-PROJ <- 60
-ITER_PROJ <- 1:200
+PROJ <- 60 # days
+set.seed(274929)
+ITER_PROJ <- sample(seq_len(N_ITER), 200) # downsample for speed
 projections_multi <- map(names(fits), function(.x) {
   print(.x)
   if (.x == "AB1") {
@@ -76,7 +79,6 @@ projections_multi <- map(names(fits), function(.x) {
   #   )
   # }
 }) %>% set_names(.names)
-# plan(sequential)
 
 saveRDS(projections_multi,
   file = "selfIsolationModel/contact-ratios/data-generated/all-projections-multi.rds"
@@ -131,7 +133,7 @@ projections_multi$AB <- p_ab
 projections_multi$AB1 <- NULL
 projections_multi$AB2 <- NULL
 
-tidy_projections <- map(projections_multi, custom_tidy_seir, resample_y_rep = 100)
+tidy_projections <- map(projections_multi, custom_tidy_seir, resample_y_rep = 50)
 
 # order
 tidy_projections <- tidy_projections %>% .[order(names(.))]
@@ -155,9 +157,10 @@ ggsave("selfIsolationModel/contact-ratios/figs/projections.png", width = 8, heig
 # 1.4 -----------------------------------------------------------------
 
 PROJ <- 60
-ITER_PROJ <- 1:40
+set.seed(12898221)
+ITER_PROJ <- sample(seq_len(N_ITER), 200) # downsample for speed
 mults <- c(1.2, 1.4)
-PROV <- "BC"
+PROV <- "ON"
 projections_select <- map(mults, function(.x) {
   cat(.x, "\n")
   days <- length(observed_data_orig[[PROV]]$day)
@@ -171,7 +174,7 @@ projections_select <- map(mults, function(.x) {
 }) %>% set_names(as.character(mults))
 tidy_projections <- map(projections_select,
   custom_tidy_seir,
-  resample_y_rep = 150
+  resample_y_rep = 50
 )
 plots <- map(tidy_projections, function(x) {
   pred <- left_join(ab1_look_up, x, by = "day")
@@ -185,7 +188,8 @@ cowplot::plot_grid(plotlist = plots)
 
 library(future)
 plan(multisession)
-ITER <- 1:200
+set.seed(12898221)
+ITER <- sample(seq_len(N_ITER), 300) # downsample for speed
 # -2 is to avoid Alberta2
 thresholds <- furrr::future_map(fits[-2], get_thresh, iter = ITER)
 plan(sequential)
