@@ -12,15 +12,22 @@ source(file.path(this_folder, "01-fit-michigan.R"))
 
 .names <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")
 
-obj_files <- paste0("selfIsolationModel/contact-ratios/data-generated/", .names, "-fit.rds")
+obj_files <- paste0(
+  "selfIsolationModel/contact-ratios/data-generated/",
+  .names, "-fit.rds"
+)
 
 fits <- map(obj_files, readRDS) %>% set_names(.names)
 fits
 
-dat_files <- paste0("selfIsolationModel/contact-ratios/data-generated/", .names, "-dat.rds")
+dat_files <- paste0(
+  "selfIsolationModel/contact-ratios/data-generated/",
+  .names, "-dat.rds"
+)
 dat_files
 
-observed_data <- map(dat_files, readRDS) %>% set_names(.names) %>%
+observed_data <- map(dat_files, readRDS) %>%
+  set_names(.names) %>%
   map(select, date, day, value)
 observed_data
 
@@ -36,16 +43,18 @@ observed_data$AB2$day <- max(observed_data$AB1$day) + observed_data$AB2$day
 observed_data$AB <- bind_rows(observed_data$AB1, observed_data$AB2)
 observed_data$AB1 <- NULL
 observed_data$AB2 <- NULL
-observed_data <- map(observed_data, mutate, region = ifelse(grepl("AB", region), "AB", region))
+observed_data <- map(observed_data, mutate,
+  region = ifelse(grepl("AB", region), "AB", region))
 
 # Multiplicative projection:
 
 PROJ <- 60
-ITER_PROJ <- 1:40
+ITER_PROJ <- 1:200
 projections_multi <- map(names(fits), function(.x) {
   print(.x)
   if (.x == "AB1") {
-    day_total <- nrow(observed_data_orig[["AB1"]]) + nrow(observed_data_orig[["AB2"]])
+    day_total <- nrow(observed_data_orig[["AB1"]]) +
+      nrow(observed_data_orig[["AB2"]])
     print(day_total)
     AB2_days <- nrow(observed_data_orig[["AB2"]])
     .forecast_days <- AB2_days + PROJ
@@ -57,7 +66,7 @@ projections_multi <- map(names(fits), function(.x) {
       f_fixed_start = .f_fixed_start,
       f_multi = rep(1.2, PROJ)
     )
-  } else if (.x %in% c("AB2", "BC", "ON", "QC")) {
+  } else { # if (.x %in% c("AB2", "BC", "ON", "QC")) {
     days <- length(observed_data_orig[[.x]]$day)
     print(days)
     covidseir::project_seir(
@@ -67,18 +76,20 @@ projections_multi <- map(names(fits), function(.x) {
       f_fixed_start = days + 1,
       f_multi = rep(1.2, PROJ)
     )
-  } else {
-    covidseir::project_seir(
-      fits[[.x]],
-      iter = ITER_PROJ,
-      forecast_days = 0
-    )
   }
+  # else {
+  #   covidseir::project_seir(
+  #     fits[[.x]],
+  #     iter = ITER_PROJ,
+  #     forecast_days = 0
+  #   )
+  # }
 }) %>% set_names(.names)
 # plan(sequential)
 
 saveRDS(projections_multi,
-  file = "selfIsolationModel/contact-ratios/data-generated/all-projections-multi.rds")
+  file = "selfIsolationModel/contact-ratios/data-generated/all-projections-multi.rds"
+)
 projections_multi <- readRDS("selfIsolationModel/contact-ratios/data-generated/all-projections-multi.rds")
 
 # check:
@@ -94,20 +105,26 @@ projections_multi <- readRDS("selfIsolationModel/contact-ratios/data-generated/a
 # cowplot::plot_grid(plotlist = plots)
 
 # Join the 2 Alberta models:
-ab1_look_up <- tibble(date = seq(
-  min(observed_data_orig[["AB1"]]$date),
-  min(observed_data_orig[["AB1"]]$date) + max(projections_multi$AB1$day),
-  by = "1 day"),
-  day = seq(1, max(projections_multi$AB1$day) + 1))
+ab1_look_up <- tibble(
+  date = seq(
+    min(observed_data_orig[["AB1"]]$date),
+    min(observed_data_orig[["AB1"]]$date) + max(projections_multi$AB1$day),
+    by = "1 day"
+  ),
+  day = seq(1, max(projections_multi$AB1$day) + 1)
+)
 p_ab1 <- left_join(
   projections_multi$AB1,
   ab1_look_up
 )
-ab2_look_up <- tibble(date = seq(
-  min(observed_data_orig[["AB2"]]$date),
-  min(observed_data_orig[["AB2"]]$date) + max(projections_multi$AB2$day),
-  by = "1 day"),
-  day = seq(1, max(projections_multi$AB2$day) + 1))
+ab2_look_up <- tibble(
+  date = seq(
+    min(observed_data_orig[["AB2"]]$date),
+    min(observed_data_orig[["AB2"]]$date) + max(projections_multi$AB2$day),
+    by = "1 day"
+  ),
+  day = seq(1, max(projections_multi$AB2$day) + 1)
+)
 p_ab2 <- left_join(
   projections_multi$AB2,
   ab2_look_up
@@ -123,7 +140,7 @@ projections_multi$AB <- p_ab
 projections_multi$AB1 <- NULL
 projections_multi$AB2 <- NULL
 
-tidy_projections <- map(projections_multi, custom_tidy_seir, resample_y_rep = 200)
+tidy_projections <- map(projections_multi, custom_tidy_seir, resample_y_rep = 100)
 
 # order
 tidy_projections <- tidy_projections %>% .[order(names(.))]
@@ -140,9 +157,9 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
 
 cowplot::plot_grid(plotlist = plots[c("BC", "AB", "ON", "QC")])
 
-ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.svg", width = 8, height = 6.5, plot = g)
-ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.pdf", width = 8, height = 6.5, plot = g)
-ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.png", width = 8, height = 6.5, plot = g)
+# ggsave("selfIsolationModel/contact-ratios/figs/projections.svg", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/projections.pdf", width = 8, height = 6.5, plot = g)
+# ggsave("selfIsolationModel/contact-ratios/figs/projections.png", width = 8, height = 6.5, plot = g)
 
 # 1.4 -----------------------------------------------------------------
 
@@ -162,7 +179,9 @@ projections_select <- map(mults, function(.x) {
   )
 }) %>% set_names(as.character(mults))
 tidy_projections <- map(projections_select,
-  custom_tidy_seir, resample_y_rep = 150)
+  custom_tidy_seir,
+  resample_y_rep = 150
+)
 plots <- map(tidy_projections, function(x) {
   pred <- left_join(ab1_look_up, x, by = "day")
   obs <- observed_data[[PROV]]
@@ -180,14 +199,16 @@ ITER <- 1:200
 thresholds <- furrr::future_map(fits[-2], get_thresh, iter = ITER)
 plan(sequential)
 saveRDS(thresholds,
-  file = "selfIsolationModel/contact-ratios/data-generated/contact-ratio-thresholds.rds")
+  file = "selfIsolationModel/contact-ratios/data-generated/contact-ratio-thresholds.rds"
+)
 thresholds <- readRDS("selfIsolationModel/contact-ratios/data-generated/contact-ratio-thresholds.rds")
 
 # -2 is to avoid Alberta2
-f2 <- map(fits[-2], ~.x$post$f_s[ITER,1])
-ratios <- map2_dfr(thresholds, f2, ~tibble(ratio = .y / .x), .id = "region")
+f2 <- map(fits[-2], ~ .x$post$f_s[ITER, 1])
+ratios <- map2_dfr(thresholds, f2, ~ tibble(ratio = .y / .x), .id = "region")
 
-ggplot(ratios,aes(ratio)) + facet_wrap(~region) +
+ggplot(ratios, aes(ratio)) +
+  facet_wrap(~region) +
   geom_histogram() +
   geom_vline(xintercept = 1, lty = 2) +
   ggsidekick::theme_sleek()
@@ -210,7 +231,7 @@ make_hist <- function(df) {
     theme(axis.title.y.left = element_blank()) +
     theme(axis.text.y.left = element_blank()) +
     theme(axis.ticks.y.left = element_blank()) +
-    theme(plot.margin = margin(t=11 / 2, r=13, b=11 / 2, l=13)) +
+    theme(plot.margin = margin(t = 11 / 2, r = 13, b = 11 / 2, l = 13)) +
     ggtitle(region)
 }
 
