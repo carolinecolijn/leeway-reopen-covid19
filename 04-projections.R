@@ -104,7 +104,7 @@ ggsave(file.path(fig_folder, "projections-all.png"),
 # Histograms ----------------------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:400 # downsample for speed
+ITER <- 1:300 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -160,10 +160,10 @@ projections_select <- furrr::future_map(mults, function(.x) {
     f_multi = rep(.x, PROJ)
   )
 }) %>% set_names(as.character(mults))
-tidy_projections <- furrr::future_map(
+tidy_projections <- map(
   projections_select,
   custom_tidy_seir,
-  resample_y_rep = 150
+  resample_y_rep = 100
 )
 
 out <- tidy_projections %>% bind_rows(.id = "frac")
