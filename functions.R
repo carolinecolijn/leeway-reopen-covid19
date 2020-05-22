@@ -132,3 +132,53 @@ custom_projection_plot <- function(pred_dat, obs_dat, col = "#377EB8") {
     theme(axis.title.x.bottom = element_blank())
   g
 }
+
+custom_projection_plot2 <- function(pred_dat, obs_dat) {
+  g <- ggplot(pred_dat, aes(x = date)) +
+    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = frac),
+      alpha = 0.25) +
+    # geom_ribbon(aes(ymin = y_rep_0.25, ymax = y_rep_0.75, fill = frac),
+    #   alpha = 0.2) +
+    geom_line(aes(y = y_rep_0.50, col = frac), lwd = 0.9) +
+    scale_colour_viridis_d(end = 0.95) +
+    scale_fill_viridis_d(end = 0.95) +
+    coord_cartesian(expand = FALSE, xlim = range(out$date), ylim = c(0, 2000)) +
+    ylab("Reported cases") +
+    theme(axis.title.x = element_blank())
+  g <- g +
+    geom_line(
+      data = obs_dat,
+      col = "black", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      lwd = 0.35, alpha = 0.9
+    ) +
+    geom_point(
+      data = obs_dat,
+      col = "grey30", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      pch = 21, fill = "grey95", size = 1.25
+    ) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.x.bottom = element_blank()) +
+    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction")
+  g
+}
+
+make_hist <- function(df) {
+  region <- unique(df$region)
+  ggplot(df) +
+    ylab("Density") +
+    geom_histogram(
+      breaks = breaks, aes(x = ratio, y = ..density..),
+      fill = "#377EB8", alpha = .75, colour = "grey90", lwd = 0.3
+    ) +
+    geom_vline(xintercept = 1, lty = 2, col = "grey60") +
+    coord_cartesian(xlim = range(breaks), expand = FALSE) +
+    xlab("Contact ratio") +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.y.left = element_blank()) +
+    theme(axis.text.y.left = element_blank()) +
+    theme(axis.ticks.y.left = element_blank()) +
+    theme(plot.margin = margin(t = 11 / 2, r = 13, b = 11 / 2, l = 13)) +
+    ggtitle(region)
+}

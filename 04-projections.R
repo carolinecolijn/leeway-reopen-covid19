@@ -68,6 +68,7 @@ date_look_up <- tibble(
   day = seq(1, max(projections_multi$ON$day) + 1)
 )
 
+# With projection:
 plots <- map2(tidy_projections, observed_data, function(x, obs) {
   pred <- left_join(date_look_up, x, by = "day")
   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
@@ -84,21 +85,7 @@ ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
 ggsave(file.path(fig_folder, "projections-all-1.2.png"),
   width = 14, height = 5.5, plot = g)
 
-plots <- map2(tidy_projections, observed_data, function(x, obs) {
-  pred <- left_join(date_look_up, x, by = "day")
-  pred <- dplyr::filter(pred, date <= max(obs$date))
-  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
-    ggtitle(unique(obs$region)) +
-    coord_cartesian(expand = FALSE,
-      xlim = c(lubridate::ymd("2020-03-01"),
-        lubridate::ymd("2020-07-15")))
-})
-g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
-ggsave(file.path(fig_folder, "projections-all.pdf"),
-  width = 14, height = 5.5, plot = g)
-ggsave(file.path(fig_folder, "projections-all.png"),
-  width = 14, height = 5.5, plot = g)
-
+# No projection:
 plots <- map2(tidy_projections, observed_data, function(x, obs) {
   pred <- left_join(date_look_up, x, by = "day")
   pred <- dplyr::filter(pred, date <= max(obs$date))
@@ -109,9 +96,9 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
         lubridate::ymd("2020-05-21")))
 })
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
-ggsave(file.path(fig_folder, "projections-all2.pdf"),
+ggsave(file.path(fig_folder, "projections-all.pdf"),
   width = 14, height = 5.5, plot = g)
-ggsave(file.path(fig_folder, "projections-all2.png"),
+ggsave(file.path(fig_folder, "projections-all.png"),
   width = 14, height = 5.5, plot = g)
 
 # Histograms ----------------------------------------------------------------
@@ -140,27 +127,7 @@ ggplot(ratios, aes(ratio)) +
 q <- quantile(ratios$ratio, probs = c(0, 1))
 breaks <- seq(q[1], q[2], length.out = 25)
 
-make_hist <- function(df) {
-  region <- gsub("1", "", unique(df$region))
-  ggplot(df) +
-    ylab("Density") +
-    geom_histogram(
-      breaks = breaks, aes(x = ratio, y = ..density..),
-      fill = "#377EB8", alpha = .75, colour = "grey90", lwd = 0.3
-    ) +
-    geom_vline(xintercept = 1, lty = 2, col = "grey60") +
-    coord_cartesian(xlim = range(breaks), expand = FALSE) +
-    xlab("Contact ratio") +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.y.left = element_blank()) +
-    theme(axis.text.y.left = element_blank()) +
-    theme(axis.ticks.y.left = element_blank()) +
-    theme(plot.margin = margin(t = 11 / 2, r = 13, b = 11 / 2, l = 13)) +
-    ggtitle(region)
-}
-
-hists <- group_split(ratios, region) %>%
-  map(make_hist)
+hists <- group_split(ratios, region) %>% map(make_hist)
 g <- cowplot::plot_grid(plotlist = hists, align = "hv")
 ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
 ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
@@ -198,36 +165,6 @@ tidy_projections <- furrr::future_map(
   custom_tidy_seir,
   resample_y_rep = 150
 )
-custom_projection_plot2 <- function(pred_dat, obs_dat) {
-  g <- ggplot(pred_dat, aes(x = date)) +
-    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = frac),
-      alpha = 0.25) +
-    # geom_ribbon(aes(ymin = y_rep_0.25, ymax = y_rep_0.75, fill = frac),
-    #   alpha = 0.2) +
-    geom_line(aes(y = y_rep_0.50, col = frac), lwd = 0.9) +
-    scale_colour_viridis_d(end = 0.95) +
-    scale_fill_viridis_d(end = 0.95) +
-    coord_cartesian(expand = FALSE, xlim = range(out$date), ylim = c(0, 2000)) +
-    ylab("Reported cases") +
-    theme(axis.title.x = element_blank())
-  g <- g +
-    geom_line(
-      data = obs_dat,
-      col = "black", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      lwd = 0.35, alpha = 0.9
-    ) +
-    geom_point(
-      data = obs_dat,
-      col = "grey30", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      pch = 21, fill = "grey95", size = 1.25
-    ) +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.x.bottom = element_blank()) +
-    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction")
-  g
-}
 
 out <- tidy_projections %>% bind_rows(.id = "frac")
 out <- left_join(date_look_up, out, by = "day")
@@ -235,6 +172,5 @@ out <- filter(out, !is.na(frac)) # 1 extra date sometimes?
 obs <- observed_data[[PROV]]
 g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
   ggtitle(unique(obs$region))
-g
 ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
 ggsave(file.path(fig_folder, "proj-ON-fractions.png"), width = 5.5, height = 3.5, plot = g)
