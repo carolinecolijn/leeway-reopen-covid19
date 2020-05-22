@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+source("selfIsolationModel/contact-ratios/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 # https://www.government.se/articles/2020/05/about-covid-19--for-older-people-people-with-health-conditions-and-health-care-and-social-services-staff/
@@ -9,7 +9,7 @@ source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
 # Read and prepare data -----------------------------------------------------
 
 #dat <- readr::read_csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
-dat <- readr::read_csv(here(this_folder,"data-raw/EURO.csv"))
+dat <- readr::read_csv(file.path(this_folder,"data-raw/EURO.csv"))
 dat$dateRep <- lubridate::dmy(dat$dateRep)
 dat <- dplyr::filter(dat, countriesAndTerritories == "Sweden")
 dat <- dat %>% rename(date = dateRep) %>% arrange(date)
@@ -33,7 +33,7 @@ dat$day <- seq_len(nrow(dat))
 ggplot(dat, aes(day, ncases)) +
   geom_line(color="blue") + geom_point(aes(day, cases), color="red")
 
-saveRDS(dat, here(this_folder, "data-generated/SWE-dat.rds"))
+saveRDS(dat, file.path(this_folder, "data-generated/SWE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -59,7 +59,7 @@ fit <- covidseir::fit_seir(
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, here(this_folder, "data-generated/SWE-fit.rds"))
+saveRDS(fit, file.path(this_folder, "data-generated/SWE-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 dat$value <- dat$cases #plot using actual cases
@@ -82,7 +82,7 @@ proj_tidy %>%
 threshold <- get_thresh(fit, iter = 1:50,
   forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
 round(threshold, 2)
-saveRDS(threshold, here(this_folder, "data-generated/SWE-threshold.rds"))
+saveRDS(threshold, file.path(this_folder, "data-generated/SWE-threshold.rds"))
 
 # Quick plot:
 hist(fit$post$f_s[,1],
