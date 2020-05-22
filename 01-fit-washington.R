@@ -69,9 +69,9 @@ dat[76, "daily_cases_smooth"] <- mean(dat[75:76, ]$daily_cases)  # 77 is NA
 
 dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
 dat$value
+plot(dat$day, dat$value, type = "o")
 
 fit_file <- file.path(this_folder, "data-generated/WA-fit.rds")
-
 
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
@@ -81,7 +81,6 @@ if (!file.exists(fit_file)) {
     chains = CHAINS,
     start_decline_prior = c(log(get_google_start("Washington", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Washington", dat)), 0.1),
-
     i0_prior = i0_PRIOR,
     N_pop = 7.6e6,
   )
