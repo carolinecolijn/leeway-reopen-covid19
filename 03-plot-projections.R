@@ -204,36 +204,6 @@ ggsave(file.path(fig_folder, "projections-all2.pdf"),
 ggsave(file.path(fig_folder, "projections-all2.png"),
   width = 14, height = 5.5, plot = g)
 
-# 1.4 -----------------------------------------------------------------
-
-# PROJ <- 60
-# set.seed(12898221)
-# ITER_PROJ <- sample(seq_len(N_ITER), 200) # downsample for speed
-# mults <- c(1.2, 1.4)
-# PROV <- "ON"
-# projections_select <- map(mults, function(.x) {
-#   cat(.x, "\n")
-#   days <- length(observed_data_orig[[PROV]]$day)
-#   covidseir::project_seir(
-#     fits[[PROV]],
-#     iter = ITER_PROJ,
-#     forecast_days = PROJ,
-#     f_fixed_start = days + 1,
-#     f_multi = rep(.x, PROJ)
-#   )
-# }) %>% set_names(as.character(mults))
-# tidy_projections <- map(projections_select,
-#   custom_tidy_seir,
-#   resample_y_rep = 50
-# )
-# plots <- map(tidy_projections, function(x) {
-#   pred <- left_join(ab1_look_up, x, by = "day")
-#   obs <- observed_data[[PROV]]
-#   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
-#     ggtitle(unique(obs$region))
-# })
-# cowplot::plot_grid(plotlist = plots, align = "hv")
-
 # Histograms ------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 10) # downsample for speed (not matching iters!?)
@@ -293,3 +263,73 @@ g <- cowplot::plot_grid(plotlist = hists, align = "hv")
 ggsave(file.path(fig_folder, "contact-ratios.svg"), width = 8, height = 6.5, plot = g)
 ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
 ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
+
+# ----------------------------------------
+
+# 1.4 -----------------------------------------------------------------
+
+PROJ <- 60
+set.seed(12898221)
+ITER_PROJ <- sample(seq_len(N_ITER), 60) # downsample for speed
+mults <- c(1, 1.2, 1.4, 1.6)
+PROV <- "ON"
+projections_select <- map(mults, function(.x) {
+  cat(.x, "\n")
+  days <- length(observed_data_orig[[PROV]]$day)
+  covidseir::project_seir(
+    fits[[PROV]],
+    iter = ITER_PROJ,
+    forecast_days = PROJ,
+    f_fixed_start = days + 1,
+    f_multi = rep(.x, PROJ)
+  )
+}) %>% set_names(as.character(mults))
+tidy_projections <- map(
+  projections_select,
+  custom_tidy_seir,
+  resample_y_rep = 10
+)
+
+custom_projection_plot2 <- function(pred_dat, obs_dat, col = "#377EB8") {
+  g <- ggplot(pred_dat, aes_string(x = "date")) +
+    geom_ribbon(aes_string(ymin = "y_rep_0.05", ymax = "y_rep_0.95", fill = frac),
+      alpha = 0.2) +
+    geom_ribbon(aes_string(ymin = "y_rep_0.25", ymax = "y_rep_0.75", fill = frac),
+      alpha = 0.2c) +
+    geom_line(aes_string(y = "y_rep_0.50", col = frac), lwd = 0.9) +
+    coord_cartesian(expand = FALSE, xlim = range(pred_dat$date)) +
+    ylab("Reported cases") +
+    theme(axis.title.x = element_blank())
+  g <- g +
+    geom_line(
+      data = obs_dat,
+      col = "black", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      lwd = 0.35, alpha = 0.9, inherit.aes = FALSE
+    ) +
+    geom_point(
+      data = obs_dat,
+      col = "grey30", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      pch = 21, fill = "grey95", size = 1.25, inherit.aes = FALSE
+    ) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.x.bottom = element_blank())
+  g
+}
+
+out <- tidy_projections %>% bind_rows(.id = "frac")
+out <- left_join(ab1_look_up, out, by = "day")
+obs <- observed_data[[PROV]]
+
+custom_projection_plot2(pred_dat = out, obs_dat = obs) +
+  ggtitle(unique(obs$region))
+
+# plots <- map(tidy_projections, function(x) {
+#
+#   obs <- observed_data[[PROV]]
+#   custom_projection_plot2(pred_dat = pred, obs_dat = obs) +
+#     ggtitle(unique(obs$region)) +
+#     facet_null()
+# })
+# cowplot::plot_grid(plotlist = plots, align = "hv")
