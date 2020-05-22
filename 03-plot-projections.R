@@ -1,15 +1,6 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 library(purrr)
 
-source(file.path(this_folder, "01-fit-british-columbia.R"))
-source(file.path(this_folder, "01-fit-alberta-twopart.R"))
-source(file.path(this_folder, "01-fit-ontario.R"))
-source(file.path(this_folder, "01-fit-quebec.R"))
-source(file.path(this_folder, "01-fit-california.R"))
-source(file.path(this_folder, "01-fit-washington.R"))
-source(file.path(this_folder, "01-fit-new-york.R"))
-source(file.path(this_folder, "01-fit-michigan.R"))
-
 .names <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")
 
 obj_files <- paste0(
@@ -155,11 +146,11 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
     ggtitle(unique(obs$region))
 })
 
-cowplot::plot_grid(plotlist = plots[c("BC", "AB", "ON", "QC")])
+g <- cowplot::plot_grid(plotlist = plots[c("BC", "AB", "ON", "QC")])
 
-# ggsave("selfIsolationModel/contact-ratios/figs/projections.svg", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/projections.svg", width = 8, height = 6.5, plot = g)
 ggsave("selfIsolationModel/contact-ratios/figs/projections.pdf", width = 8, height = 6.5, plot = g)
-# ggsave("selfIsolationModel/contact-ratios/figs/projections.png", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/projections.png", width = 8, height = 6.5, plot = g)
 
 # 1.4 -----------------------------------------------------------------
 
