@@ -1,9 +1,6 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 library(purrr)
 
-files <- list.files(this_folder, pattern = "^01-") %>% sort()
-files
-
 source(file.path(this_folder, "01-fit-british-columbia.R"))
 source(file.path(this_folder, "01-fit-alberta-twopart.R"))
 source(file.path(this_folder, "01-fit-ontario.R"))
@@ -13,27 +10,12 @@ source(file.path(this_folder, "01-fit-washington.R"))
 source(file.path(this_folder, "01-fit-new-york.R"))
 source(file.path(this_folder, "01-fit-michigan.R"))
 
-# files <- list.files(file.path(this_folder, "data-generated"),
-#   pattern = "*fit*", full.names = TRUE) %>% sort()
-# files
-
 .names <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")
 
 obj_files <- paste0("selfIsolationModel/contact-ratios/data-generated/", .names, "-fit.rds")
 
-# .names <- list.files(file.path(this_folder, "data-generated"),
-#   pattern = "*fit*") %>%
-#   sort() %>%
-#   gsub("-fit[0-9]*\\.rds", "", .)
-# .names[.names == "AB"] <- paste0(.names[.names == "AB"], c(1, 2))
-# .names
-# .names <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")
-
 fits <- map(obj_files, readRDS) %>% set_names(.names)
 fits
-
-# dat_files <- list.files(file.path(this_folder, "data-generated"), pattern = "*dat*", full.names = TRUE)
-# dat_files
 
 dat_files <- paste0("selfIsolationModel/contact-ratios/data-generated/", .names, "-dat.rds")
 dat_files
@@ -56,41 +38,42 @@ observed_data$AB1 <- NULL
 observed_data$AB2 <- NULL
 observed_data <- map(observed_data, mutate, region = ifelse(grepl("AB", region), "AB", region))
 
-library(future)
-plan(multisession)
-projections <- furrr::future_map(names(fits), function(.x) {
-  covidseir::project_seir(fits[[.x]], iter = 1:50,
-    forecast_days = if (.x == "AB1") 0 else 30)
-}) %>% set_names(.names)
-
-plan(sequential)
-
-saveRDS(projections,
-  file = "selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
-projections <- readRDS("selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
-
-projections$AB2$day <- max(projections$AB1$day) + projections$AB2$day
-projections$AB <- bind_rows(projections$AB1, projections$AB2)
-projections$AB1 <- NULL
-projections$AB2 <- NULL
-
-tidy_projections <- map(projections, covidseir::tidy_seir)
-
-# order
-tidy_projections <- tidy_projections %>% .[order(names(.))]
-observed_data <- observed_data %>% .[order(names(.))]
-
-plots <- map2(tidy_projections, observed_data, function(x, y) {
-  covidseir::plot_projection(pred_dat = x, obs_dat = y) +
-    facet_null() +
-    ggtitle(unique(y$region)) +
-    ggsidekick::theme_sleek()
-})
-
-cowplot::plot_grid(plotlist = plots)
+# library(future)
+# plan(multisession)
+# projections <- furrr::future_map(names(fits), function(.x) {
+#   covidseir::project_seir(fits[[.x]], iter = 1:50,
+#     forecast_days = if (.x == "AB1") 0 else 30)
+# }) %>% set_names(.names)
+#
+# plan(sequential)
+#
+# saveRDS(projections,
+#   file = "selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
+# projections <- readRDS("selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
+#
+# projections$AB2$day <- max(projections$AB1$day) + projections$AB2$day
+# projections$AB <- bind_rows(projections$AB1, projections$AB2)
+# projections$AB1 <- NULL
+# projections$AB2 <- NULL
+#
+# tidy_projections <- map(projections, covidseir::tidy_seir)
+#
+# # order
+# tidy_projections <- tidy_projections %>% .[order(names(.))]
+# observed_data <- observed_data %>% .[order(names(.))]
+#
+# plots <- map2(tidy_projections, observed_data, function(x, y) {
+#   covidseir::plot_projection(pred_dat = x, obs_dat = y) +
+#     facet_null() +
+#     ggtitle(unique(y$region)) +
+#     ggsidekick::theme_sleek()
+# })
+#
+# cowplot::plot_grid(plotlist = plots)
 
 
 ############
+# Testing
 # p <- covidseir::project_seir(
 #   fits[["ON"]],
 #   iter = 1:25,
@@ -118,10 +101,6 @@ cowplot::plot_grid(plotlist = plots)
 #################
 
 # Multiplicative projection:
-
-# library(future)
-# plan(multisession)
-# projections_multi <- furrr::future_map(names(fits), function(.x) {
 
 PROJ <- 60
 ITER_PROJ <- 1:40
@@ -165,17 +144,18 @@ saveRDS(projections_multi,
 projections_multi <- readRDS("selfIsolationModel/contact-ratios/data-generated/all-projections-multi.rds")
 
 # check:
-tidy_projections <- map(projections_multi, covidseir::tidy_seir, resample_y_rep = 0)
-tidy_projections <- tidy_projections %>% .[order(names(.))]
-observed_data <- observed_data %>% .[order(names(.))]
-observed_data_orig <- observed_data_orig %>% .[order(names(.))]
-plots <- map2(tidy_projections, observed_data_orig, function(x, y) {
-  covidseir::plot_projection(pred_dat = x, obs_dat = y) +
-    facet_null() +
-    ggtitle(unique(y$region))
-})
-cowplot::plot_grid(plotlist = plots)
+# tidy_projections <- map(projections_multi, covidseir::tidy_seir, resample_y_rep = 0)
+# tidy_projections <- tidy_projections %>% .[order(names(.))]
+# observed_data <- observed_data %>% .[order(names(.))]
+# observed_data_orig <- observed_data_orig %>% .[order(names(.))]
+# plots <- map2(tidy_projections, observed_data_orig, function(x, y) {
+#   covidseir::plot_projection(pred_dat = x, obs_dat = y) +
+#     facet_null() +
+#     ggtitle(unique(y$region))
+# })
+# cowplot::plot_grid(plotlist = plots)
 
+# Join the 2 Alberta models:
 ab1_look_up <- tibble(date = seq(
   min(observed_data_orig[["AB1"]]$date),
   min(observed_data_orig[["AB1"]]$date) + max(projections_multi$AB1$day),
@@ -196,65 +176,14 @@ p_ab2 <- left_join(
 )
 p_ab <- bind_rows(p_ab1, p_ab2) %>%
   select(-day) %>%
-  # filter(.iteration == 1) %>%
-  # group_by(date, .iteration) %>%
-  # summarise(
-  #   mu = sum(mu, na.rm = TRUE),
-  #   y_rep = sum(y_rep, na.rm = TRUE)
-  # ) %>%
-
   group_by(.iteration) %>%
   arrange(date) %>%
   mutate(data_type = 1)
 p_ab <- left_join(p_ab, ab1_look_up) %>%
   select(-date)
-
-# projections_multi$AB2$day <- max(projections_multi$AB1$day) + projections_multi$AB2$day
-# projections_multi$AB <- bind_rows(projections_multi$AB1, projections_multi$AB2)
-# projections_multi$AB1 <- NULL
-# projections_multi$AB2 <- NULL
-
 projections_multi$AB <- p_ab
 projections_multi$AB1 <- NULL
 projections_multi$AB2 <- NULL
-
-custom_tidy_seir <- function(x, resample_y_rep = 10, data_type_names = NULL) {
-  if (resample_y_rep > 0) {
-    x <- purrr::map_dfr(seq_len(resample_y_rep), function(i) {
-      temp <- x
-      temp$y_rep <- MASS::rnegbin(length(temp$y_rep),
-        temp$mu,
-        theta = temp$phi
-      )
-      temp$.obs_iteration <- i
-      temp
-    })
-  }
-
-  out <- dplyr::group_by(x, data_type, day, .obs_iteration, .iteration) %>%
-    summarise(y_rep = sum(y_rep, na.rm = TRUE), mu = sum(mu, na.rm = TRUE))
-
-  out <- dplyr::group_by(out, data_type, day)
-  out <- dplyr::summarise(out,
-    y_rep_0.05 = stats::quantile(y_rep, probs = 0.05),
-    y_rep_0.25 = stats::quantile(y_rep, probs = 0.25),
-    y_rep_mean = mean(y_rep),
-    y_rep_0.50 = stats::quantile(y_rep, probs = 0.50),
-    y_rep_0.75 = stats::quantile(y_rep, probs = 0.75),
-    y_rep_0.95 = stats::quantile(y_rep, probs = 0.95),
-    mu_0.05 = stats::quantile(mu, probs = 0.05),
-    mu_0.25 = stats::quantile(mu, probs = 0.25),
-    mu_mean = mean(mu),
-    mu_0.50 = stats::quantile(mu, probs = 0.50),
-    mu_0.75 = stats::quantile(mu, probs = 0.75),
-    mu_0.95 = stats::quantile(mu, probs = 0.95),
-    mu_0.5 = stats::quantile(mu, probs = 0.50)
-  )
-  if (!is.null(data_type_names)) {
-    out$data_type <- names(data_type_names[as.numeric(out$data_type)])
-  }
-  out
-}
 
 tidy_projections <- map(projections_multi, custom_tidy_seir, resample_y_rep = 200)
 
@@ -265,48 +194,92 @@ observed_data <- observed_data %>% .[order(names(.))]
 names(tidy_projections)
 names(observed_data)
 
-custom_plot <- function(pred_dat, obs_dat, col = "#377EB8") {
-  g <- ggplot(pred_dat, aes_string(x = "day")) +
-    geom_ribbon(aes_string(ymin = "y_rep_0.05", ymax = "y_rep_0.95"),
-      alpha = 0.2, fill = col) +
-    geom_ribbon(aes_string(ymin = "y_rep_0.25", ymax = "y_rep_0.75"),
-      alpha = 0.2, fill = col) +
-    geom_line(aes_string(y = "y_rep_mean"), lwd = 0.9, col = col) +
-    facet_wrap(~data_type) +
-    coord_cartesian(expand = FALSE, xlim = range(pred_dat$day)) +
-    ylab("Cases") +
-    theme(axis.title.x = element_blank())
-  g <- g +
-    geom_line(
-      data = obs_dat,
-      col = "black", inherit.aes = FALSE,
-      aes_string(x = "day", y = "value"),
-      lwd = 0.35, alpha = 0.9
-    ) +
-    geom_point(
-      data = obs_dat,
-      col = "grey30", inherit.aes = FALSE,
-      aes_string(x = "day", y = "value"),
-      pch = 21, fill = "grey95", size = 1.25
-    )
-  g
-}
-
-
-plots <- map2(tidy_projections, observed_data, function(x, y) {
-  obs <- y %>%
-    select(-day) %>%
-    rename(day = date)
-
-  pred <- left_join(ab1_look_up, x, by = "day") %>%
-    select(-day) %>%
-    rename(day = date)
-
-  custom_plot(pred_dat = pred, obs_dat = obs) +
-    facet_null() +
-    ggtitle(unique(y$region)) +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.x.bottom = element_blank())
+plots <- map2(tidy_projections, observed_data, function(x, obs) {
+  pred <- left_join(ab1_look_up, x, by = "day")
+  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+    ggtitle(unique(obs$region))
 })
 
 cowplot::plot_grid(plotlist = plots[c("BC", "AB", "ON", "QC")])
+
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.svg", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.pdf", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.png", width = 8, height = 6.5, plot = g)
+
+# 1.4 -----------------------------------------------------------------
+
+PROJ <- 60
+ITER_PROJ <- 1:40
+mults <- c(1.2, 1.4)
+PROV <- "BC"
+projections_select <- map(mults, function(.x) {
+  cat(.x, "\n")
+  days <- length(observed_data_orig[[PROV]]$day)
+  covidseir::project_seir(
+    fits[[PROV]],
+    iter = ITER_PROJ,
+    forecast_days = PROJ,
+    f_fixed_start = days + 1,
+    f_multi = rep(.x, PROJ)
+  )
+}) %>% set_names(as.character(mults))
+tidy_projections <- map(projections_select,
+  custom_tidy_seir, resample_y_rep = 150)
+plots <- map(tidy_projections, function(x) {
+  pred <- left_join(ab1_look_up, x, by = "day")
+  obs <- observed_data[[PROV]]
+  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+    ggtitle(unique(obs$region))
+})
+cowplot::plot_grid(plotlist = plots)
+
+# Histograms ------------------------------------------------
+
+library(future)
+plan(multisession)
+ITER <- 1:200
+# -2 is to avoid Alberta2
+thresholds <- furrr::future_map(fits[-2], get_thresh, iter = ITER)
+plan(sequential)
+saveRDS(thresholds,
+  file = "selfIsolationModel/contact-ratios/data-generated/contact-ratio-thresholds.rds")
+thresholds <- readRDS("selfIsolationModel/contact-ratios/data-generated/contact-ratio-thresholds.rds")
+
+# -2 is to avoid Alberta2
+f2 <- map(fits[-2], ~.x$post$f_s[ITER,1])
+ratios <- map2_dfr(thresholds, f2, ~tibble(ratio = .y / .x), .id = "region")
+
+ggplot(ratios,aes(ratio)) + facet_wrap(~region) +
+  geom_histogram() +
+  geom_vline(xintercept = 1, lty = 2) +
+  ggsidekick::theme_sleek()
+
+breaks <- seq(0.25, 1.25, length.out = 25)
+
+make_hist <- function(df) {
+  region <- gsub("1", "", unique(df$region))
+  ggplot(df) +
+    ylab("Density") +
+    geom_vline(xintercept = 1, lty = 2, col = "grey60") +
+    geom_histogram(
+      breaks = breaks, aes(x = ratio, y = ..density..),
+      fill = "#377EB8", alpha = .75, colour = "grey90", lwd = 0.3
+    ) +
+    coord_cartesian(xlim = range(breaks), expand = FALSE) +
+    xlab("Contact ratio") +
+    # facet_wrap(~region) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.y.left = element_blank()) +
+    theme(axis.text.y.left = element_blank()) +
+    theme(axis.ticks.y.left = element_blank()) +
+    theme(plot.margin = margin(t=11 / 2, r=13, b=11 / 2, l=13)) +
+    ggtitle(region)
+}
+
+hists <- group_split(ratios, region) %>%
+  map(make_hist)
+g <- cowplot::plot_grid(plotlist = hists)
+
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.svg", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.pdf", width = 8, height = 6.5, plot = g)
+ggsave("selfIsolationModel/contact-ratios/figs/contact-ratios.png", width = 8, height = 6.5, plot = g)
