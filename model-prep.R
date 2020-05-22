@@ -32,7 +32,7 @@ make_traceplot <- function(fit) {
 ymd <- lubridate::ymd
 dmy <- lubridate::dmy
 
-ITER <- 200
+ITER <- 800
 CHAINS <- 4
 SAMP_FRAC <- 0.2
 i0_PRIOR <- c(log(1), 1)
