@@ -38,68 +38,6 @@ observed_data$AB1 <- NULL
 observed_data$AB2 <- NULL
 observed_data <- map(observed_data, mutate, region = ifelse(grepl("AB", region), "AB", region))
 
-# library(future)
-# plan(multisession)
-# projections <- furrr::future_map(names(fits), function(.x) {
-#   covidseir::project_seir(fits[[.x]], iter = 1:50,
-#     forecast_days = if (.x == "AB1") 0 else 30)
-# }) %>% set_names(.names)
-#
-# plan(sequential)
-#
-# saveRDS(projections,
-#   file = "selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
-# projections <- readRDS("selfIsolationModel/contact-ratios/data-generated/all-projections.rds")
-#
-# projections$AB2$day <- max(projections$AB1$day) + projections$AB2$day
-# projections$AB <- bind_rows(projections$AB1, projections$AB2)
-# projections$AB1 <- NULL
-# projections$AB2 <- NULL
-#
-# tidy_projections <- map(projections, covidseir::tidy_seir)
-#
-# # order
-# tidy_projections <- tidy_projections %>% .[order(names(.))]
-# observed_data <- observed_data %>% .[order(names(.))]
-#
-# plots <- map2(tidy_projections, observed_data, function(x, y) {
-#   covidseir::plot_projection(pred_dat = x, obs_dat = y) +
-#     facet_null() +
-#     ggtitle(unique(y$region)) +
-#     ggsidekick::theme_sleek()
-# })
-#
-# cowplot::plot_grid(plotlist = plots)
-
-
-############
-# Testing
-# p <- covidseir::project_seir(
-#   fits[["ON"]],
-#   iter = 1:25,
-#   forecast_days = 60
-# )
-#
-# days <- length(observed_data[["ON"]]$day)
-# p <- covidseir::project_seir(
-#   fits[["ON"]],
-#   iter = 1:25,
-#   forecast_days = 30,
-#   f_fixed_start = days + 1,
-#   f_fixed = rep(0.64, 30)
-# )
-# covidseir::tidy_seir(p) %>% plot_projection(observed_data[["ON"]])
-#
-# p <- covidseir::project_seir(
-#   fits[["ON"]],
-#   iter = 1:25,
-#   forecast_days = 60,
-#   f_fixed_start = days + 1,
-#   f_multi = rep(1.2, 60)
-# )
-# covidseir::tidy_seir(p) %>% plot_projection(observed_data[["ON"]])
-#################
-
 # Multiplicative projection:
 
 PROJ <- 60
