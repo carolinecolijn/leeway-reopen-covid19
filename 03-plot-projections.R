@@ -266,8 +266,6 @@ ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plo
 
 # ----------------------------------------
 
-# 1.4 -----------------------------------------------------------------
-
 PROJ <- 60
 set.seed(12898221)
 ITER_PROJ <- sample(seq_len(N_ITER), 60) # downsample for speed
@@ -287,16 +285,16 @@ projections_select <- map(mults, function(.x) {
 tidy_projections <- map(
   projections_select,
   custom_tidy_seir,
-  resample_y_rep = 10
+  resample_y_rep = 100
 )
 
 custom_projection_plot2 <- function(pred_dat, obs_dat, col = "#377EB8") {
   g <- ggplot(pred_dat, aes_string(x = "date")) +
-    geom_ribbon(aes_string(ymin = "y_rep_0.05", ymax = "y_rep_0.95", fill = frac),
+    geom_ribbon(aes_string(ymin = "y_rep_0.05", ymax = "y_rep_0.95", fill = "frac"),
       alpha = 0.2) +
-    geom_ribbon(aes_string(ymin = "y_rep_0.25", ymax = "y_rep_0.75", fill = frac),
-      alpha = 0.2c) +
-    geom_line(aes_string(y = "y_rep_0.50", col = frac), lwd = 0.9) +
+    geom_ribbon(aes_string(ymin = "y_rep_0.25", ymax = "y_rep_0.75", fill = "frac"),
+      alpha = 0.2) +
+    geom_line(aes_string(y = "y_rep_0.50", col = "frac"), lwd = 0.9) +
     coord_cartesian(expand = FALSE, xlim = range(pred_dat$date)) +
     ylab("Reported cases") +
     theme(axis.title.x = element_blank())
@@ -305,13 +303,13 @@ custom_projection_plot2 <- function(pred_dat, obs_dat, col = "#377EB8") {
       data = obs_dat,
       col = "black", inherit.aes = FALSE,
       aes_string(x = "date", y = "value"),
-      lwd = 0.35, alpha = 0.9, inherit.aes = FALSE
+      lwd = 0.35, alpha = 0.9
     ) +
     geom_point(
       data = obs_dat,
       col = "grey30", inherit.aes = FALSE,
       aes_string(x = "date", y = "value"),
-      pch = 21, fill = "grey95", size = 1.25, inherit.aes = FALSE
+      pch = 21, fill = "grey95", size = 1.25
     ) +
     ggsidekick::theme_sleek() +
     theme(axis.title.x.bottom = element_blank())
@@ -322,14 +320,13 @@ out <- tidy_projections %>% bind_rows(.id = "frac")
 out <- left_join(ab1_look_up, out, by = "day")
 obs <- observed_data[[PROV]]
 
-custom_projection_plot2(pred_dat = out, obs_dat = obs) +
-  ggtitle(unique(obs$region))
+g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
+  ggtitle(unique(obs$region)) +
+  scale_colour_viridis_d() +
+  scale_fill_viridis_d() +
+  coord_cartesian(expand = FALSE, xlim = range(out$date), ylim = c(0, 2000))
 
-# plots <- map(tidy_projections, function(x) {
-#
-#   obs <- observed_data[[PROV]]
-#   custom_projection_plot2(pred_dat = pred, obs_dat = obs) +
-#     ggtitle(unique(obs$region)) +
-#     facet_null()
-# })
-# cowplot::plot_grid(plotlist = plots, align = "hv")
+
+ggsave(file.path(fig_folder, "proj-ON-fractions.svg"), width = 5.5, height = 3.5, plot = g)
+ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
+ggsave(file.path(fig_folder, "proj-ON-fractions.png"), width = 5.5, height = 3.5, plot = g)
