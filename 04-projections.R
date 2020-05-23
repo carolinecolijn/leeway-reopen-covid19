@@ -140,22 +140,46 @@ ggplot(ratios, aes(ratio)) +
   geom_vline(xintercept = 1, lty = 2) +
   ggsidekick::theme_sleek()
 
-q <- range(ratios$ratio)
-breaks <- seq(q[1], q[2], length.out = 25)
-
-hists <- group_split(ratios, region) %>% map(make_hist)
-g <- cowplot::plot_grid(plotlist = hists, align = "hv")
-ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
-ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
+# hists <- group_split(ratios, region) %>% map(make_hist)
+# g <- cowplot::plot_grid(plotlist = hists, align = "hv")
+# ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
+# ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
 
 # Violin plots: -------------------------------------------------------------
 
-ratios %>%
-  ggplot(aes(x = region, y = ratio)) +
-  geom_violin() +
-  coord_flip() +
+country_lookup <- tibble::tribble(
+  ~region, ~country,
+  "BC", "CAN",
+  "BE", "EU",
+  "CA", "US",
+  "DE", "EUR",
+  "FL", "US",
+  "MI", "US",
+  "NY", "US",
+  "NZ", "PAC",
+  "ON", "CAN",
+  "QC", "CAN",
+  "SWE", "EUR",
+  "UK", "EUR",
+  "WA", "US"
+)
+set.seed(1)
+g <- ratios %>%
+  left_join(country_lookup) %>%
+  mutate(country = forcats::fct_shuffle(country)) %>%
+  group_by(region) %>%
+  mutate(mean_ratio = mean(ratio)) %>%
+  ungroup() %>%
+  ggplot(aes(x = forcats::fct_reorder(region, -mean_ratio), y = ratio)) +
+  geom_hline(yintercept = 1, alpha = 0.4) +
+  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35) +
+  coord_flip(ylim = c(0, 1.4), expand = FALSE) +
   ggsidekick::theme_sleek() +
-  geom_hline(yintercept = 1)
+  scale_fill_brewer(palette = "Set3") +
+  theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
+  labs(fill = "Region", y = "Threshold ratio")
+ggsave(file.path(fig_folder, "ratio-violins.pdf"), width = 4, height = 5)
+ggsave(file.path(fig_folder, "ratio-violins.png"), width = 4, height = 5)
 
 # Example projections at multiple levels for one region: --------------------
 
