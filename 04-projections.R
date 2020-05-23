@@ -246,7 +246,10 @@ fan_plot <- function(pred, obs) {
       aes_string(x = "date", y = "value"),
       pch = 21, fill = "grey95", size = 1.25
     ) +
-    coord_cartesian(expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2)) +
+    annotate("rect", xmin = max(obs$date), xmax = ymd("2020-07-15"), col = "grey40", alpha = 0.1,
+      ymin = 0, ymax = max(obs$value, na.rm = TRUE) * 2) +
+    coord_cartesian(expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
+      xlim = c(ymd("2020-03-01"), ymd("2020-07-15"))) +
     ggsidekick::theme_sleek() +
     theme(axis.title.x.bottom = element_blank()) +
     labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
