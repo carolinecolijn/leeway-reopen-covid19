@@ -25,6 +25,7 @@ dat1 <- dat %>%
   mutate(daily_cases_smooth = zoo::rollmean(daily_cases, k = 3, fill = NA))
 
 dat$daily_cases <- round(dat1$daily_cases_smooth)
+dat$value <- dat$daily_cases
 
 saveRDS(dat, file.path(this_folder, "data-generated/BE-dat.rds"))
 
