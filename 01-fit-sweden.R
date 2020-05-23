@@ -43,19 +43,22 @@ saveRDS(dat, file.path(this_folder, "data-generated/SWE-dat.rds"))
 #s <- as.numeric(google_dates$start_date - origin, units="days")
 #e <- as.numeric(google_dates$end_date - origin, units="days")
 
-
-fit <- covidseir::fit_seir(
-  daily_cases = dat$cases, #fit to smoothed cases
-  samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-  i0_prior = i0_PRIOR,
-  start_decline_prior = c(log(6), 0.2), # c(log(get_google_start("Sweden", dat)), 0.2),
-  end_decline_prior = c(log(27), 0.2), # c(log(get_google_end("Sweden", dat)), 0.2),
-  N_pop = 10343403,
-  chains = CHAINS,
-  iter = ITER,
-  pars = c(D = 5, k1 = 1/5, k2 = 1,
-    q = 0.05, ud = 0.1, ur = covidseir:::getu(0.6, r = 0.1), f0 = 1)
-)
+fit_file <- file.path(this_folder, "data-generated/SWE-fit.rds")
+if (!file.exists(fit_file)) {
+  fit <- covidseir::fit_seir(
+    daily_cases = dat$cases, #fit to smoothed cases
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
+    i0_prior = i0_PRIOR,
+    start_decline_prior = c(log(6), 0.2), # c(log(get_google_start("Sweden", dat)), 0.2),
+    end_decline_prior = c(log(27), 0.2), # c(log(get_google_end("Sweden", dat)), 0.2),
+    N_pop = 10343403,
+    chains = CHAINS,
+    iter = ITER
+  )
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
 
 print(fit)
 make_traceplot(fit)
