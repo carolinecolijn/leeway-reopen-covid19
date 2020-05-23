@@ -37,17 +37,16 @@ set.seed(274929)
 F_MULTI <- 1.2
 ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
 
-projections_multi <- map(names(fits), function(.x) {
-  cat(.x, "\n")
-  days <- length(observed_data[[.x]]$day)
+projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
+  days <- length(.y$day)
   covidseir::project_seir(
-    fits[[.x]],
+    .x,
     iter = ITER_PROJ,
     forecast_days = PROJ,
     f_fixed_start = days + 1,
     f_multi = rep(F_MULTI, PROJ)
   )
-}) %>% set_names(REGIONS)
+})
 
 saveRDS(projections_multi, file = file.path(dg_folder, "all-projections-multi-1.2.rds"))
 projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds"))
