@@ -203,3 +203,5 @@ g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
   ggtitle(unique(obs$region))
 ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
 ggsave(file.path(fig_folder, "proj-ON-fractions.png"), width = 5.5, height = 3.5, plot = g)
+
+future::plan(future::sequential)
