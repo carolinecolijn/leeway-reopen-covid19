@@ -62,29 +62,29 @@ make_traceplot(fit)
 saveRDS(fit, file.path(this_folder, "data-generated/SWE-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
-dat$value <- dat$cases #plot using actual cases
+# dat$value <- dat$cases #plot using actual cases
 
-proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
-proj_tidy <- covidseir::tidy_seir(proj)
+# proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
+# proj_tidy <- covidseir::tidy_seir(proj)
 
-proj_tidy %>%
-  covidseir::plot_projection(dat) #+ geom_vline(data = data.frame(end=fit$post$end_decline), aes(xintercept=end))
+# proj_tidy %>%
+#   covidseir::plot_projection(dat) #+ geom_vline(data = data.frame(end=fit$post$end_decline), aes(xintercept=end))
 
-proj_tidy %>%
-  covidseir::plot_projection(dat) +
-  scale_y_log10()
+# proj_tidy %>%
+#  covidseir::plot_projection(dat) +
+#  scale_y_log10()
 
 # Calculate threshold for increase ------------------------------------------
 
 # Need to pick reasonable f(s) values for a reasonable time span
 # such that fitting a linear regression makes sense.
 # Make sure the plot that comes out of this is linear:
-threshold <- get_thresh(fit, iter = 1:50,
-  forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
-round(threshold, 2)
-saveRDS(threshold, file.path(this_folder, "data-generated/SWE-threshold.rds"))
+#threshold <- get_thresh(fit, iter = 1:50,
+#  forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
+#round(threshold, 2)
+#saveRDS(threshold, file.path(this_folder, "data-generated/SWE-threshold.rds"))
 
 # Quick plot:
-hist(fit$post$f_s[,1],
-  main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
-abline(v = threshold, col = "red", lwd = 2)
+#hist(fit$post$f_s[,1],
+#  main = "", xlab = "Estimated fraction of normal contacts", breaks = 20)
+#abline(v = threshold, col = "red", lwd = 2)
