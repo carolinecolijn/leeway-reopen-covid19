@@ -148,7 +148,7 @@ ggplot(ratios, aes(ratio)) +
 # Violin plots: -------------------------------------------------------------
 
 country_lookup <- tibble::tribble(
-  ~region, ~country,
+  ~region, ~region_group,
   "BC", "CAN",
   "BE", "EU",
   "CA", "US",
@@ -166,13 +166,13 @@ country_lookup <- tibble::tribble(
 set.seed(1)
 g <- ratios %>%
   left_join(country_lookup) %>%
-  mutate(country = forcats::fct_shuffle(country)) %>%
+  mutate(region_group = forcats::fct_shuffle(region_group)) %>%
   group_by(region) %>%
   mutate(mean_ratio = mean(ratio)) %>%
   ungroup() %>%
   ggplot(aes(x = forcats::fct_reorder(region, -mean_ratio), y = ratio)) +
   geom_hline(yintercept = 1, alpha = 0.4) +
-  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35) +
+  geom_violin(aes(fill = region_group), colour = "grey40", lwd = 0.35) +
   coord_flip(ylim = c(0, 1.4), expand = FALSE) +
   ggsidekick::theme_sleek() +
   scale_fill_brewer(palette = "Set3") +
@@ -181,41 +181,84 @@ g <- ratios %>%
 ggsave(file.path(fig_folder, "ratio-violins.pdf"), width = 4, height = 5)
 ggsave(file.path(fig_folder, "ratio-violins.png"), width = 4, height = 5)
 
-# Example projections at multiple levels for one region: --------------------
+# Example projections at multiple levels for all regions: -------------------
 
 PROJ <- 60
 set.seed(12898221)
-ITER_PROJ <- sample(seq_len(N_ITER), PROJ_ITER) # downsample for speed
-PROV <- "ON"
+ITER_PROJ <- sample(seq_len(N_ITER), round(PROJ_ITER / 2)) # *double* downsample for speed
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
-days <- length(observed_data[[PROV]]$day)
-projections_select <- furrr::future_map(mults, function(.x) {
-  covidseir::project_seir(
-    fits[[PROV]],
-    iter = ITER_PROJ,
-    forecast_days = PROJ,
-    f_fixed_start = days + 1,
-    f_multi = rep(.x, PROJ)
-  )
+projections_fan <- map(mults, function(.mult) {
+  cat(.mult, "\n")
+  out <- furrr::future_map2(fits, observed_data, function(.fit, .obs) {
+    days <- length(.obs$day)
+    covidseir::project_seir(
+      .fit,
+      iter = ITER_PROJ,
+      forecast_days = PROJ,
+      f_fixed_start = days + 1,
+      f_multi = rep(.mult, PROJ)
+    )
+  })
+  map(out, mutate, f_multi = .mult)
 }) %>% set_names(as.character(mults))
-tidy_projections <- map(
-  projections_select,
-  custom_tidy_seir,
-  resample_y_rep = RESAMPLE_ITER
-)
+saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
+projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
+
+tidy_projections <- furrr::future_map(projections_fan, function(x) {
+  map(x, function(y) {
+    covidseir::tidy_seir(y, resample_y_rep = RESAMPLE_ITER)
+  })
+})
+tidy_projections1 <- map(tidy_projections, bind_rows, .id = "region")
+tidy_projections1 <- tidy_projections1 %>% bind_rows(.id = "f_multi")
+tidy_projections1 <- split(tidy_projections1, tidy_projections1$region)
 
 # Add dates:
-obs <- observed_data[[PROV]]
-tidy_projections <- map(tidy_projections, function(pred) {
+tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) {
   first_day <- min(obs$date)
-  mutate(pred, date = seq(first_day, first_day + nrow(pred) - 1, by = "1 day"))
+  lu <- tibble(
+    day = sort(unique(pred$day)),
+    date = seq(first_day, first_day + length(day) - 1, by = "1 day")
+  )
+  left_join(pred, lu, by = "day")
 })
 
-out <- tidy_projections %>% bind_rows(.id = "frac")
-g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
-  ggtitle(unique(obs$region))
-ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
-ggsave(file.path(fig_folder, "proj-ON-fractions.png"), width = 5.5, height = 3.5, plot = g)
+# Plot!
+
+fan_plot <- function(pred, obs) {
+  ggplot(pred, aes(x = date)) +
+    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
+    geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
+    scale_colour_viridis_d(end = 0.95) +
+    scale_fill_viridis_d(end = 0.95) +
+    ylab("Reported cases") +
+    theme(axis.title.x = element_blank()) +
+    geom_line(
+      data = obs,
+      col = "black", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      lwd = 0.35, alpha = 0.9
+    ) +
+    geom_point(
+      data = obs,
+      col = "grey30", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      pch = 21, fill = "grey95", size = 1.25
+    ) +
+    coord_cartesian(expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2)) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.x.bottom = element_blank()) +
+    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
+    guides(fill = FALSE, colour = FALSE) +
+    ggtitle(unique(obs$region))
+}
+
+stopifnot(identical(names(tidy_projections2), names(observed_data)))
+plots <- map2(tidy_projections2, observed_data, fan_plot)
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
+
+ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 12, height = 8, plot = g)
+ggsave(file.path(fig_folder, "proj-fan.png"), width = 12, height = 8, plot = g)
 
 future::plan(future::sequential)
