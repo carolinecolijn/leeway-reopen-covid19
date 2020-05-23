@@ -8,6 +8,7 @@ fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
 REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE")
+REGIONS <- sort(REGIONS)
 N_ITER <- CHAINS * ITER / 2
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
@@ -55,23 +56,28 @@ tidy_projections <- furrr::future_map(
   projections_multi, custom_tidy_seir,
   resample_y_rep = 100
 )
-tidy_projections <- tidy_projections %>% .[order(names(.))]
-observed_data <- observed_data %>% .[order(names(.))]
-observed_data <- observed_data[names(tidy_projections)] # in case some removed
+# tidy_projections <- tidy_projections %>% .[order(names(.))]
+# observed_data <- observed_data %>% .[order(names(.))]
+# observed_data <- observed_data[names(tidy_projections)] # in case some removed
 stopifnot(identical(names(tidy_projections), names(observed_data)))
 
-date_look_up <- tibble(
-  date = seq(
-    min(observed_data[["ON"]]$date),
-    min(observed_data[["ON"]]$date) + max(projections_multi$ON$day),
-    by = "1 day"
-  ),
-  day = seq(1, max(projections_multi$ON$day) + 1)
-)
+# date_look_up <- tibble(
+#   date = seq(
+#     min(observed_data[["ON"]]$date),
+#     min(observed_data[["ON"]]$date) + max(projections_multi$ON$day),
+#     by = "1 day"
+#   ),
+#   day = seq(1, max(projections_multi$ON$day) + 1)
+# )
+
+# Add dates:
+tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
+  first_day <- min(obs$date)
+  mutate(pred, date = seq(first_day, first_day + nrow(pred) - 1, by = "1 day"))
+})
 
 # With projection:
 plots <- map2(tidy_projections, observed_data, function(x, obs) {
-  pred <- left_join(date_look_up, x, by = "day")
   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
@@ -84,17 +90,16 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
     )
 })
 
-g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
-  width = 14, height = 5.5, plot = g
+  width = 12, height = 8, plot = g
 )
 ggsave(file.path(fig_folder, "projections-all-1.2.png"),
-  width = 14, height = 5.5, plot = g
+  width = 12, height = 8, plot = g
 )
 
 # No projection:
 plots <- map2(tidy_projections, observed_data, function(x, obs) {
-  pred <- left_join(date_look_up, x, by = "day")
   pred <- dplyr::filter(pred, date <= max(obs$date))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
@@ -106,12 +111,12 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
       )
     )
 })
-g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
+g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 ggsave(file.path(fig_folder, "projections-all.pdf"),
-  width = 14, height = 5.5, plot = g
+  width = 12, height = 8, plot = g
 )
 ggsave(file.path(fig_folder, "projections-all.png"),
-  width = 14, height = 5.5, plot = g
+  width = 12, height = 8, plot = g
 )
 
 # Histograms ----------------------------------------------------------------
@@ -170,8 +175,8 @@ ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
 PROV <- "ON"
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
+days <- length(observed_data_orig[[PROV]]$day)
 projections_select <- furrr::future_map(mults, function(.x) {
-  days <- length(observed_data_orig[[PROV]]$day)
   covidseir::project_seir(
     fits[[PROV]],
     iter = ITER_PROJ,
@@ -186,10 +191,14 @@ tidy_projections <- map(
   resample_y_rep = 100
 )
 
-out <- tidy_projections %>% bind_rows(.id = "frac")
-out <- left_join(date_look_up, out, by = "day")
-out <- filter(out, !is.na(frac)) # 1 extra date sometimes?
+# Add dates:
 obs <- observed_data[[PROV]]
+tidy_projections <- map(tidy_projections, function(pred) {
+  first_day <- min(obs$date)
+  mutate(pred, date = seq(first_day, first_day + nrow(pred) - 1, by = "1 day"))
+})
+
+out <- tidy_projections %>% bind_rows(.id = "frac")
 g <- custom_projection_plot2(pred_dat = out, obs_dat = obs) +
   ggtitle(unique(obs$region))
 ggsave(file.path(fig_folder, "proj-ON-fractions.pdf"), width = 5.5, height = 3.5, plot = g)
