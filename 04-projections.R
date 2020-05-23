@@ -117,7 +117,7 @@ ggsave(file.path(fig_folder, "projections-all.png"),
 # Histograms ----------------------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:200 # downsample for speed
+ITER <- 1:125 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -145,7 +145,7 @@ ggplot(ratios, aes(ratio)) +
   geom_vline(xintercept = 1, lty = 2) +
   ggsidekick::theme_sleek()
 
-q <- quantile(ratios$ratio, probs = c(0, 1))
+q <- range(ratios$ratio)
 breaks <- seq(q[1], q[2], length.out = 25)
 
 hists <- group_split(ratios, region) %>% map(make_hist)
@@ -171,7 +171,6 @@ PROV <- "ON"
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
 projections_select <- furrr::future_map(mults, function(.x) {
-  cat(.x, "\n")
   days <- length(observed_data_orig[[PROV]]$day)
   covidseir::project_seir(
     fits[[PROV]],
