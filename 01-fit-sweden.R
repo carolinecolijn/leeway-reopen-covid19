@@ -28,6 +28,7 @@ origin <- lubridate::ymd("2020-03-01")
 dat <- dplyr::filter(dat, date >= origin)
 dat$day <- seq_len(nrow(dat))
 
+dat$value <- dat$cases
 
 # View(dat)
 ggplot(dat, aes(day, ncases)) +
