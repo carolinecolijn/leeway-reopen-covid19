@@ -7,14 +7,14 @@ dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC","BE", "CA", "DE","FL", "MI", "NY", "NZ", "ON", "QC", "SWE","UK", "WA")
+REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE")
 N_ITER <- CHAINS * ITER / 2
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
 obj_files
 
 fits <- map(obj_files, readRDS) %>% set_names(REGIONS)
-map(fits, print)
+walk(fits, print)
 
 dat_files <- paste0(dg_folder, REGIONS, "-dat.rds")
 dat_files
@@ -35,7 +35,7 @@ PROJ <- 60 # days
 set.seed(274929)
 
 F_MULTI <- 1.2
-ITER_PROJ <- sample(seq_len(N_ITER), 150) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
 
 projections_multi <- map(names(fits), function(.x) {
   cat(.x, "\n")
@@ -53,7 +53,9 @@ saveRDS(projections_multi, file = file.path(dg_folder, "all-projections-multi-1.
 projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds"))
 
 tidy_projections <- furrr::future_map(
-  projections_multi, custom_tidy_seir, resample_y_rep = 100)
+  projections_multi, custom_tidy_seir,
+  resample_y_rep = 100
+)
 tidy_projections <- tidy_projections %>% .[order(names(.))]
 observed_data <- observed_data %>% .[order(names(.))]
 observed_data <- observed_data[names(tidy_projections)] # in case some removed
@@ -74,16 +76,22 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
-    coord_cartesian(expand = FALSE,
-      xlim = c(lubridate::ymd("2020-03-01"),
-      lubridate::ymd("2020-07-15")))
+    coord_cartesian(
+      expand = FALSE,
+      xlim = c(
+        lubridate::ymd("2020-03-01"),
+        lubridate::ymd("2020-07-15")
+      )
+    )
 })
 
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
 ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
-  width = 14, height = 5.5, plot = g)
+  width = 14, height = 5.5, plot = g
+)
 ggsave(file.path(fig_folder, "projections-all-1.2.png"),
-  width = 14, height = 5.5, plot = g)
+  width = 14, height = 5.5, plot = g
+)
 
 # No projection:
 plots <- map2(tidy_projections, observed_data, function(x, obs) {
@@ -91,31 +99,45 @@ plots <- map2(tidy_projections, observed_data, function(x, obs) {
   pred <- dplyr::filter(pred, date <= max(obs$date))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
-    coord_cartesian(expand = FALSE,
-      xlim = c(lubridate::ymd("2020-03-01"),
-        lubridate::ymd("2020-05-21")))
+    coord_cartesian(
+      expand = FALSE,
+      xlim = c(
+        lubridate::ymd("2020-03-01"),
+        lubridate::ymd("2020-05-21")
+      )
+    )
 })
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 2)
 ggsave(file.path(fig_folder, "projections-all.pdf"),
-  width = 14, height = 5.5, plot = g)
+  width = 14, height = 5.5, plot = g
+)
 ggsave(file.path(fig_folder, "projections-all.png"),
-  width = 14, height = 5.5, plot = g)
+  width = 14, height = 5.5, plot = g
+)
 
 # Histograms ----------------------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:300 # downsample for speed
+ITER <- 1:200 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
 # check:
-thresholds %>% bind_rows(.id = "ignore") %>% tidyr::pivot_longer(-1) %>%
-  ggplot(aes(value)) + geom_histogram() + facet_wrap(~name)
+thresholds %>%
+  bind_rows(.id = "ignore") %>%
+  tidyr::pivot_longer(-1) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_wrap(~name)
 
 f2 <- map(fits, ~ .x$post$f_s[ITER, 1])
 # check:
-f2 %>% bind_rows(.id = "ignore") %>% tidyr::pivot_longer(-1) %>%
-  ggplot(aes(value)) + geom_histogram() + facet_wrap(~name)
+f2 %>%
+  bind_rows(.id = "ignore") %>%
+  tidyr::pivot_longer(-1) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_wrap(~name)
 
 ratios <- map2_dfr(thresholds, f2, ~ tibble(ratio = .y / .x), .id = "region")
 ggplot(ratios, aes(ratio)) +
@@ -145,7 +167,7 @@ ratios %>%
 
 PROJ <- 60
 set.seed(12898221)
-ITER_PROJ <- sample(seq_len(N_ITER), 150) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
 PROV <- "ON"
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
