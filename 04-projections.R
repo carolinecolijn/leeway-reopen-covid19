@@ -10,6 +10,8 @@ dir.create(fig_folder, showWarnings = FALSE)
 REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE")
 REGIONS <- sort(REGIONS)
 N_ITER <- CHAINS * ITER / 2
+PROJ_ITER <- 100
+RESAMPLE_ITER <- 100
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
 obj_files
@@ -36,7 +38,7 @@ PROJ <- 60 # days
 set.seed(274929)
 
 F_MULTI <- 1.2
-ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), PROJ_ITER) # downsample for speed
 
 projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
   days <- length(.y$day)
@@ -54,7 +56,7 @@ projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds
 
 tidy_projections <- furrr::future_map(
   projections_multi, custom_tidy_seir,
-  resample_y_rep = 100
+  resample_y_rep = RESAMPLE_ITER
 )
 stopifnot(identical(names(tidy_projections), names(observed_data)))
 
@@ -110,7 +112,7 @@ ggsave(file.path(fig_folder, "projections-all.png"),
 # Histograms ----------------------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:125 # downsample for speed
+ITER <- 1:150 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -159,7 +161,7 @@ ratios %>%
 
 PROJ <- 60
 set.seed(12898221)
-ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), PROJ_ITER) # downsample for speed
 PROV <- "ON"
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
@@ -176,7 +178,7 @@ projections_select <- furrr::future_map(mults, function(.x) {
 tidy_projections <- map(
   projections_select,
   custom_tidy_seir,
-  resample_y_rep = 100
+  resample_y_rep = RESAMPLE_ITER
 )
 
 # Add dates:
