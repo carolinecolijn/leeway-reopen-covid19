@@ -13,8 +13,5 @@ source(file.path(this_folder, "01-fit-denmark.R"))
 source(file.path(this_folder, "01-fit-belgium.R"))
 source(file.path(this_folder, "01-fit-florida.R"))
 source(file.path(this_folder, "01-fit-new-zealand.R"))
-source(file.path(this_folder, "01-fit-sweden.R"))  # NOTE - not completely in
-                                        # new format yet (will re-run
-                                        # calculations even if
-                                        # results are saved)
+source(file.path(this_folder, "01-fit-sweden.R"))
 source(file.path(this_folder, "01-fit-uk.R"))
