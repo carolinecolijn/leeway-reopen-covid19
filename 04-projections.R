@@ -56,19 +56,7 @@ tidy_projections <- furrr::future_map(
   projections_multi, custom_tidy_seir,
   resample_y_rep = 100
 )
-# tidy_projections <- tidy_projections %>% .[order(names(.))]
-# observed_data <- observed_data %>% .[order(names(.))]
-# observed_data <- observed_data[names(tidy_projections)] # in case some removed
 stopifnot(identical(names(tidy_projections), names(observed_data)))
-
-# date_look_up <- tibble(
-#   date = seq(
-#     min(observed_data[["ON"]]$date),
-#     min(observed_data[["ON"]]$date) + max(projections_multi$ON$day),
-#     by = "1 day"
-#   ),
-#   day = seq(1, max(projections_multi$ON$day) + 1)
-# )
 
 # Add dates:
 tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
@@ -77,7 +65,7 @@ tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
 })
 
 # With projection:
-plots <- map2(tidy_projections, observed_data, function(x, obs) {
+plots <- map2(tidy_projections, observed_data, function(pred, obs) {
   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
@@ -99,7 +87,7 @@ ggsave(file.path(fig_folder, "projections-all-1.2.png"),
 )
 
 # No projection:
-plots <- map2(tidy_projections, observed_data, function(x, obs) {
+plots <- map2(tidy_projections, observed_data, function(pred, obs) {
   pred <- dplyr::filter(pred, date <= max(obs$date))
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
@@ -175,7 +163,7 @@ ITER_PROJ <- sample(seq_len(N_ITER), 100) # downsample for speed
 PROV <- "ON"
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
 
-days <- length(observed_data_orig[[PROV]]$day)
+days <- length(observed_data[[PROV]]$day)
 projections_select <- furrr::future_map(mults, function(.x) {
   covidseir::project_seir(
     fits[[PROV]],
