@@ -7,7 +7,7 @@ dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC", "CA", "DE", "MI", "NY", "ON", "QC", "WA")
+REGIONS <- c("BC","BE", "CA", "DE","FL", "MI", "NY", "NZ", "ON", "QC", "SWE","UK", "WA")
 N_ITER <- CHAINS * ITER / 2
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
