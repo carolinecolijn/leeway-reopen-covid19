@@ -52,6 +52,7 @@ if (!file.exists(fit_file)) {
     i0_prior = i0_PRIOR,
     start_decline_prior = c(log(6), 0.2), # c(log(get_google_start("Sweden", dat)), 0.2),
     end_decline_prior = c(log(27), 0.2), # c(log(get_google_end("Sweden", dat)), 0.2),
+    f_seg = make_f_seg(dat),
     N_pop = 10343403,
     chains = CHAINS,
     iter = ITER

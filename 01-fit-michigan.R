@@ -88,6 +88,7 @@ if (!file.exists(fit_file)) {
     i0_prior = i0_PRIOR,
     start_decline_prior = c(log(get_google_start("Michigan", dat)), 0.1),  # c(log(9), 0.1),
     end_decline_prior = c(log(get_google_end("Michigan", dat)), 0.1),  # c(log(29), 0.1),
+    f_seg = make_f_seg(dat),
     N_pop = 9.986857e6,
     chains = CHAINS,
     iter = ITER

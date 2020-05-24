@@ -38,6 +38,7 @@ if (!file.exists(fit_file)) {
     i0_prior = c(log(8), 1),
     start_decline_prior = c(log(15), 0.1),
     end_decline_prior = c(log(22), 0.1),
+    f_seg = make_f_seg(dat),
     N_pop = 5.1e6,
     chains = CHAINS,
     iter = ITER

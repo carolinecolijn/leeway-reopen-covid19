@@ -66,6 +66,7 @@ if (!file.exists(fit_file)) {
     chains = CHAINS,
     start_decline_prior = c(log(get_google_start("California", ca)), 0.1),
     end_decline_prior = c(log(get_google_end("California", ca)), 0.1),
+    f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
     N_pop = 39.51e6
   )

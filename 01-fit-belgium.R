@@ -45,6 +45,7 @@ if (!file.exists(fit_file)) {
                                             # = log(8), original was log(9)
     end_decline_prior = c(log(get_google_end("Belgium", dat)), 0.1),
                                             # = log(18), original was log(17)
+    f_seg = make_f_seg(dat),
     N_pop = 11476279,
     chains = CHAINS,
     iter = ITER

@@ -51,6 +51,7 @@ if (!file.exists(fit_file)) {
     chains = CHAINS,
     start_decline_prior = c(log(get_google_start("Florida", dat)), 0.2), # c(log(start_decline), 0.2),
     end_decline_prior = c(log(get_google_end("Florida", dat)), 0.2), # c(log(end_decline), 0.2),
+    f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
     N_pop = 21.48e6
   )

@@ -61,6 +61,7 @@ if (!file.exists(fit_file)) {
     start_decline_prior = c(log(get_google_start("Ontario", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Ontario", dat)), 0.1),
     N_pop = 14.5e6,
+    f_seg = make_f_seg(dat),
     chains = CHAINS,
     iter = ITER
   )

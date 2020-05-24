@@ -147,3 +147,10 @@ fan_plot <- function(pred, obs) {
     guides(fill = FALSE, colour = FALSE) +
     ggtitle(unique(obs$region))
 }
+
+make_f_seg <- function(.dat, .date = "2020-05-01") {
+  f_seg <- c(0L, rep(1L, nrow(.dat) - 1))
+  day_new_f <- which(.dat$date == lubridate::ymd(.date))
+  f_seg[seq(day_new_f, length(f_seg))] <- 2L
+  f_seg
+}
