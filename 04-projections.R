@@ -1,6 +1,4 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
-library(purrr)
-library(future)
 future::plan(future::multisession)
 
 dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
@@ -55,7 +53,7 @@ saveRDS(projections_multi, file = file.path(dg_folder, "all-projections-multi-1.
 projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds"))
 
 tidy_projections <- furrr::future_map(
-  projections_multi, custom_tidy_seir,
+  projections_multi, covidseir::tidy_seir,
   resample_y_rep = RESAMPLE_ITER
 )
 stopifnot(identical(names(tidy_projections), names(observed_data)))
@@ -150,7 +148,7 @@ ggplot(ratios, aes(ratio)) +
 country_lookup <- tibble::tribble(
   ~region, ~region_group,
   "BC", "CAN",
-  "BE", "EU",
+  "BE", "EUR",
   "CA", "US",
   "DE", "EUR",
   "FL", "US",
@@ -226,46 +224,81 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
 
 # Plot!
 
-fan_plot <- function(pred, obs) {
-  ggplot(pred, aes(x = date)) +
-    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
-    geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
-    scale_colour_viridis_d(end = 0.95) +
-    scale_fill_viridis_d(end = 0.95) +
-    ylab("Reported cases") +
-    theme(axis.title.x = element_blank()) +
-    geom_line(
-      data = obs,
-      col = "black", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      lwd = 0.35, alpha = 0.9
-    ) +
-    geom_point(
-      data = obs,
-      col = "grey30", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      pch = 21, fill = "grey95", size = 1.25
-    ) +
-    annotate("rect",
-      xmin = max(obs$date), xmax = ymd("2020-07-15"), fill = "grey40", alpha = 0.1,
-      ymin = 0, ymax = max(obs$value, na.rm = TRUE) * 2
-    ) +
-    coord_cartesian(
-      expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
-      xlim = c(ymd("2020-03-01"), ymd("2020-07-15"))
-    ) +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.x.bottom = element_blank()) +
-    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
-    guides(fill = FALSE, colour = FALSE) +
-    ggtitle(unique(obs$region))
-}
-
 stopifnot(identical(names(tidy_projections2), names(observed_data)))
 plots <- map2(tidy_projections2, observed_data, fan_plot)
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 12, height = 8, plot = g)
 ggsave(file.path(fig_folder, "proj-fan.png"), width = 12, height = 8, plot = g)
+
+
+# Risk calcs:
+
+N <- map_dfr(fits, ~tibble(N = .x$stan_data$x_r[["N"]]), .id = "region")
+
+hist_thresh <-
+  map_dfr(projections_fan, function(x1) {
+    map_dfr(x1, function(x2) {
+      group_by(x2, .iteration) %>%
+        summarise(
+          max_hist = max(y_rep[!forecast]),
+          max_60 = y_rep[day == max(day)],
+          above_hist_thresh = max_60 > max_hist
+        )
+    }, .id = "region")
+  }, .id = "f_multi") %>%
+  group_by(f_multi, region) %>%
+  left_join(N) %>%
+  summarise(
+    p_above_hist_thresh = mean(above_hist_thresh),
+    p_above_1_1000_N = mean(max_60 > N / 1000),
+    p_above_1_10000_N = mean(max_60 > N / 10000)
+    # p_above_1_100000_N = mean(max_60 > N / 100000)
+  ) %>%
+  ungroup() %>%
+  mutate(f_multi = as.numeric(f_multi))
+hist_thresh
+
+hist_thresh <- hist_thresh %>%
+  left_join(country_lookup)
+
+cols <- hist_thresh %>%
+  group_by(region) %>%
+  summarise(region_group = region_group[1]) %>%
+  group_by(region_group) %>%
+  mutate(col = RColorBrewer::brewer.pal(8, "Dark2")[1:n()])
+cols <- cols$col %>% set_names(cols$region)
+
+hist_thresh %>%
+  ggplot(aes(f_multi, p_above_hist_thresh, colour = region)) +
+  geom_line() +
+  facet_wrap(~region_group) +
+  ggsidekick::theme_sleek() +
+  ggrepel::geom_text_repel(data = filter(hist_thresh, f_multi == 1.8),
+    mapping = aes(x = f_multi + 0.01, label = region), hjust = 0, direction = "y") +
+  theme(legend.position = "none") +
+  scale_color_manual(values = cols)
+
+hist_thresh_long <- hist_thresh %>% tidyr::pivot_longer(c(-f_multi, -region, -region_group))
+
+g <- hist_thresh_long %>%
+  ggplot(aes(f_multi, value, colour = region)) +
+  annotate("rect", xmin = 1.8, xmax = 2.2, ymin = 0,
+    ymax = 1, fill = "grey50", alpha = 0.1) +
+  geom_line() +
+  facet_grid(name~region_group) +
+  ggsidekick::theme_sleek() +
+  ggrepel::geom_text_repel(data = filter(hist_thresh_long, f_multi == 1.8),
+    mapping = aes(x = f_multi, label = region), hjust = 0,
+    direction = "y", nudge_x = 0.1,
+    segment.colour = "grey65", segment.alpha = 0.7, segment.size = 0.3) +
+  theme(legend.position = "none", panel.spacing.y = unit(15, "pt")) +
+  scale_color_manual(values = cols) +
+  coord_cartesian(expand = FALSE, xlim = c(1, 2.2), ylim = c(-0.015, 1.015)) +
+  scale_x_continuous(breaks = unique(hist_thresh_long$f_multi)) +
+  xlab("Contact rate increase")+ylab("Probability")
+
+ggsave(file.path(fig_folder, "f-mult-ref-probs.pdf"), width = 10, height = 6)
+ggsave(file.path(fig_folder, "f-mult-ref-probs.png"), width = 10, height = 6)
 
 future::plan(future::sequential)
