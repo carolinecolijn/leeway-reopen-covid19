@@ -56,16 +56,17 @@ ca$value
 stopifnot(unique(ca$value[9]) == 0)
 ca$value[9] <- NA
 ca$value
+dat <- ca
 
 fit_file <- paste0(this_folder, "data-generated/CA-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
-    daily_cases = ca$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(ca)),
+    daily_cases = dat$value,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(get_google_start("California", ca)), 0.1),
-    end_decline_prior = c(log(get_google_end("California", ca)), 0.1),
+    start_decline_prior = c(log(get_google_start("California", dat)), 0.1),
+    end_decline_prior = c(log(get_google_end("California", dat)), 0.1),
     f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
     N_pop = 39.51e6
@@ -77,7 +78,7 @@ if (!file.exists(fit_file)) {
 print(fit)
 # p <- covidseir::project_seir(fit, iter = 1:50)
 # covidseir::tidy_seir(p) %>%
-#   covidseir::plot_projection(ca) +
+#   covidseir::plot_projection(dat) +
 #   scale_y_log10()
 
-saveRDS(ca, file = file.path(this_folder, "data-generated/CA-dat.rds"))
+saveRDS(dat, file = file.path(this_folder, "data-generated/CA-dat.rds"))

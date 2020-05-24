@@ -71,6 +71,7 @@ plot(samp_frac_fixed)
 
 .s <- as.numeric(ymd("2020-03-18") - min(nz$date))
 .e <- as.numeric(ymd("2020-03-26") - min(nz$date))
+dat <- nz
 
 # https://www.stats.govt.nz/topics/population # 4951500
 
