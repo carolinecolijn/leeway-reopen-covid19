@@ -63,8 +63,8 @@ if (!file.exists(fit_file)) {
     samp_frac_fixed = c(rep(SAMP_FRAC, 60), rep(0.3, nrow(dat) - 60)),
     # incorporating testing ramped up 30/04 = day 61
     i0_prior = i0_PRIOR,
-    start_decline_prior = c(log(get_google_start("United Kingdom", dat)), 0.2), # c(log(16), 0.1),
-    end_decline_prior = c(log(get_google_end("United Kingdom", dat)), 0.2), # c(log(23), 0.1),
+    start_decline_prior = c(log(get_google_start("United Kingdom", dat)), 0.1), # c(log(16), 0.1),
+    end_decline_prior = c(log(get_google_end("United Kingdom", dat)), 0.1), # c(log(23), 0.1),
     f_seg = make_f_seg(dat),
     N_pop = 66.4e6,
     chains = CHAINS,
