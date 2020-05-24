@@ -2,6 +2,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 library(purrr)
 library(future)
 future::plan(future::multisession)
+source("selfIsolationModel/contact-ratios/globe-funcs.R")
 
 dg_folder <- "selfIsolationModel/contact-ratios/gm-data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/gm-figs/"
