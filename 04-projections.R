@@ -290,15 +290,16 @@ g <- hist_thresh_long %>%
   ggsidekick::theme_sleek() +
   ggrepel::geom_text_repel(data = filter(hist_thresh_long, f_multi == 1.8),
     mapping = aes(x = f_multi, label = region), hjust = 0,
-    direction = "y", nudge_x = 0.1,
-    segment.colour = "grey65", segment.alpha = 0.7, segment.size = 0.3) +
+    direction = "y", nudge_x = 0.08,
+    segment.colour = "grey65", segment.alpha = 0.7, segment.size = 0.3,
+    size = 2.75) +
   theme(legend.position = "none", panel.spacing.y = unit(15, "pt")) +
   scale_color_manual(values = cols) +
-  coord_cartesian(expand = FALSE, xlim = c(1, 2.2), ylim = c(-0.015, 1.015)) +
+  coord_cartesian(expand = FALSE, xlim = c(1, 2.05), ylim = c(-0.015, 1.015)) +
   scale_x_continuous(breaks = unique(hist_thresh_long$f_multi)) +
   xlab("Contact rate increase")+ylab("Probability")
 
-ggsave(file.path(fig_folder, "f-mult-ref-probs.pdf"), width = 10, height = 6)
-ggsave(file.path(fig_folder, "f-mult-ref-probs.png"), width = 10, height = 6)
+ggsave(file.path(fig_folder, "f-mult-ref-probs.pdf"), width = 9, height = 5)
+ggsave(file.path(fig_folder, "f-mult-ref-probs.png"), width = 9, height = 5)
 
 future::plan(future::sequential)
