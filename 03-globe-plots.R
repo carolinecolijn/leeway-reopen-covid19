@@ -4,6 +4,8 @@ library(future)
 future::plan(future::multisession)
 source("selfIsolationModel/contact-ratios/globe-funcs.R")
 
+source(file.path(this_folder, "01-fit-alberta-twopart.R"))
+
 dg_folder <- "selfIsolationModel/contact-ratios/gm-data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/gm-figs/"
 dir.create(dg_folder, showWarnings = FALSE)
