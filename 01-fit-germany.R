@@ -12,7 +12,7 @@ ggplot(dat, aes(date, value)) +
   geom_point()
 
 dat <- dat %>%
-  mutate(daily_cases_smooth = zoo::rollmean(value, k = 3, fill = NA))
+  mutate(daily_cases_smooth = round(zoo::rollmean(value, k = 3, fill = NA)))
 
 ggplot(dat, aes(date, value)) +
   geom_point() +
@@ -20,12 +20,22 @@ ggplot(dat, aes(date, value)) +
 
 # Pick a reasonable starting date:
 origin <- lubridate::ymd("2020-03-01")
+
+dat_early <- dplyr::filter(dat, date < ymd("2020-02-01"))
+i0_observed <- sum(dat_early$value)
+i0_observed
+
 dat <- dplyr::filter(dat, date >= origin)
 dat$day <- seq_len(nrow(dat))
 
 dat$value <- dat$daily_cases_smooth
 ggplot(dat, aes(date, value)) +
   geom_point()
+dat$value
+
+# remove last NA:
+dat <- dat[-nrow(dat), ]
+dat$value
 
 saveRDS(dat, file.path(this_folder, "data-generated/DE-dat.rds"))
 
@@ -34,7 +44,7 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = i0_PRIOR,
+    i0_prior = c(log(i0_observed), 1),
     start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
     f_seg = make_f_seg(dat),
