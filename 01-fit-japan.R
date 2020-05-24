@@ -1,7 +1,7 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
-RawData <- readr::read_csv(file.path(this_folder,"data-raw/EURO.csv"))
-RawData$date <- lubridate::ymd(RawData$dateRep)
-Raw <- dplyr::filter(RawData, countriesAndTerritories == "Japan")
+RawData <- readr::read_csv(file.path(this_folder,"data-raw/OWID.csv"))
+Raw <- dplyr::select(RawData, date, Japan) %>%
+  rename(cases = Japan)
 
 dat <- Raw %>%
   dplyr::arrange(date) %>%

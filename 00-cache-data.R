@@ -32,3 +32,9 @@ location <- "data-raw/EURO.csv"
 linkRaw <- "https://opendata.ecdc.europa.eu/covid19/casedistribution/csv"
 data <- readr::read_csv(linkRaw)
 readr::write_csv(data, file.path(this_folder, location))
+
+## Our World in Data
+location <- "data-raw/OWID.csv"
+linkRaw <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/ecdc/new_cases.csv"
+data <- readr::read_csv(linkRaw)
+readr::write_csv(data, file.path(this_folder, location))
