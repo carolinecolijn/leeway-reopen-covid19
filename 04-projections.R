@@ -8,7 +8,7 @@ dir.create(fig_folder, showWarnings = FALSE)
 REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE")
 REGIONS <- sort(REGIONS)
 N_ITER <- CHAINS * ITER / 2
-PROJ_ITER <- 100
+PROJ_ITER <- 150
 RESAMPLE_ITER <- 100
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
@@ -110,7 +110,7 @@ ggsave(file.path(fig_folder, "projections-all.png"),
 # Histograms ----------------------------------------------------------------
 
 # ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:150 # downsample for speed
+ITER <- 1:300 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -184,7 +184,7 @@ ggsave(file.path(fig_folder, "ratio-violins.png"), width = 4, height = 5)
 PROJ <- 60
 set.seed(12898221)
 ITER_PROJ <- sample(seq_len(N_ITER), round(PROJ_ITER / 2)) # *double* downsample for speed
-mults <- c(1.0, 1.2, 1.4, 1.6, 1.8)
+mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
 projections_fan <- map(mults, function(.mult) {
   cat(.mult, "\n")
@@ -269,15 +269,15 @@ cols <- hist_thresh %>%
   mutate(col = RColorBrewer::brewer.pal(8, "Dark2")[1:n()])
 cols <- cols$col %>% set_names(cols$region)
 
-hist_thresh %>%
-  ggplot(aes(f_multi, p_above_hist_thresh, colour = region)) +
-  geom_line() +
-  facet_wrap(~region_group) +
-  ggsidekick::theme_sleek() +
-  ggrepel::geom_text_repel(data = filter(hist_thresh, f_multi == 1.8),
-    mapping = aes(x = f_multi + 0.01, label = region), hjust = 0, direction = "y") +
-  theme(legend.position = "none") +
-  scale_color_manual(values = cols)
+# hist_thresh %>%
+#   ggplot(aes(f_multi, p_above_hist_thresh, colour = region)) +
+#   geom_line() +
+#   facet_wrap(~region_group) +
+#   ggsidekick::theme_sleek() +
+#   ggrepel::geom_text_repel(data = filter(hist_thresh, f_multi == 1.8),
+#     mapping = aes(x = f_multi + 0.01, label = region), hjust = 0, direction = "y") +
+#   theme(legend.position = "none") +
+#   scale_color_manual(values = cols)
 
 hist_thresh_long <- hist_thresh %>% tidyr::pivot_longer(c(-f_multi, -region, -region_group))
 
