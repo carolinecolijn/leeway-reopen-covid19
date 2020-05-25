@@ -1,14 +1,15 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
+future::plan(future::sequential)
 future::plan(future::multisession)
 
 dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE")
+REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE", "JP")
 REGIONS <- sort(REGIONS)
 N_ITER <- CHAINS * ITER / 2
-PROJ_ITER <- 150
+PROJ_ITER <- 100
 RESAMPLE_ITER <- 100
 
 obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
@@ -30,9 +31,28 @@ observed_data <- map(seq_along(observed_data), function(.x) {
 }) %>% set_names(REGIONS)
 observed_data
 
-# Multiplicative projection: ------------------------------------------------
+country_lookup <- tibble::tribble(
+  ~region, ~region_group,
+  "BC", "CAN",
+  "BE", "EUR",
+  "CA", "US",
+  "DE", "EUR",
+  # "DK", "EUR",
+  "JP", "PAC",
+  "FL", "US",
+  "MI", "US",
+  "NY", "US",
+  "NZ", "PAC",
+  "ON", "CAN",
+  "QC", "CAN",
+  "SWE", "EUR",
+  "UK", "EUR",
+  "WA", "US"
+)
 
-PROJ <- 60 # days
+# # Multiplicative projection: ------------------------------------------------
+#
+PROJ <- 2 # days
 set.seed(274929)
 
 F_MULTI <- 1.2
@@ -45,7 +65,8 @@ projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
     iter = ITER_PROJ,
     forecast_days = PROJ,
     f_fixed_start = days + 1,
-    f_multi = rep(F_MULTI, PROJ)
+    f_multi = rep(F_MULTI, PROJ),
+    f_multi_seg = 1
   )
 })
 
@@ -63,32 +84,38 @@ tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
   first_day <- min(obs$date)
   mutate(pred, date = seq(first_day, first_day + nrow(pred) - 1, by = "1 day"))
 })
-
-# With projection:
-plots <- map2(tidy_projections, observed_data, function(pred, obs) {
-  pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
-  custom_projection_plot(pred_dat = pred, obs_dat = obs) +
-    ggtitle(unique(obs$region)) +
-    coord_cartesian(
-      expand = FALSE,
-      xlim = c(
-        lubridate::ymd("2020-03-01"),
-        lubridate::ymd("2020-07-15")
-      )
-    )
-})
-
-g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
-ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
-  width = 12, height = 8, plot = g
-)
-ggsave(file.path(fig_folder, "projections-all-1.2.png"),
-  width = 12, height = 8, plot = g
-)
-
+#
+# # With projection:
+# plots <- map2(tidy_projections, observed_data, function(pred, obs) {
+#   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
+#   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
+#     ggtitle(unique(obs$region)) +
+#     coord_cartesian(
+#       expand = FALSE,
+#       xlim = c(
+#         lubridate::ymd("2020-03-01"),
+#         lubridate::ymd("2020-07-15")
+#       )
+#     )
+# })
+#
+# g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
+# ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
+#   width = 12, height = 8, plot = g
+# )
+# ggsave(file.path(fig_folder, "projections-all-1.2.png"),
+#   width = 12, height = 8, plot = g
+# )
+#
 # No projection:
-plots <- map2(tidy_projections, observed_data, function(pred, obs) {
+plots <- furrr::future_pmap(list(fits, tidy_projections, observed_data), function(fit, pred, obs) {
   pred <- dplyr::filter(pred, date <= max(obs$date))
+
+  .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
+  .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
+  .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
+  .e2 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.95) - 1
+
   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
     ggtitle(unique(obs$region)) +
     coord_cartesian(
@@ -97,7 +124,10 @@ plots <- map2(tidy_projections, observed_data, function(pred, obs) {
         lubridate::ymd("2020-03-01"),
         lubridate::ymd("2020-05-21")
       )
-    )
+    ) +
+    geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
+    annotate("rect", xmin = .s1, xmax = .s2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5) +
+    annotate("rect", xmin = .e1, xmax = .e2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5)
 })
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 ggsave(file.path(fig_folder, "projections-all.pdf"),
@@ -145,22 +175,6 @@ ggplot(ratios, aes(ratio)) +
 
 # Violin plots: -------------------------------------------------------------
 
-country_lookup <- tibble::tribble(
-  ~region, ~region_group,
-  "BC", "CAN",
-  "BE", "EUR",
-  "CA", "US",
-  "DE", "EUR",
-  "FL", "US",
-  "MI", "US",
-  "NY", "US",
-  "NZ", "PAC",
-  "ON", "CAN",
-  "QC", "CAN",
-  "SWE", "EUR",
-  "UK", "EUR",
-  "WA", "US"
-)
 set.seed(1)
 g <- ratios %>%
   left_join(country_lookup) %>%
@@ -182,8 +196,9 @@ ggsave(file.path(fig_folder, "ratio-violins.png"), width = 4, height = 5)
 # Example projections at multiple levels for all regions: -------------------
 
 PROJ <- 60
-set.seed(12898221)
-ITER_PROJ <- sample(seq_len(N_ITER), round(PROJ_ITER / 2)) # *double* downsample for speed
+set.seed(12893)
+ITER_PROJ <- sample(seq_len(N_ITER), round(PROJ_ITER)) # *double* downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), round(60)) # *double* downsample for speed
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
 projections_fan <- map(mults, function(.mult) {
@@ -195,7 +210,8 @@ projections_fan <- map(mults, function(.mult) {
       iter = ITER_PROJ,
       forecast_days = PROJ,
       f_fixed_start = days + 1,
-      f_multi = rep(.mult, PROJ)
+      f_multi = rep(.mult, PROJ),
+      f_multi_seg = 1
     )
   })
   map(out, mutate, f_multi = .mult)
@@ -225,12 +241,11 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
 # Plot!
 
 stopifnot(identical(names(tidy_projections2), names(observed_data)))
-plots <- map2(tidy_projections2, observed_data, fan_plot)
+plots <- pmap(list(fits, tidy_projections2, observed_data), fan_plot)
 g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 12, height = 8, plot = g)
 ggsave(file.path(fig_folder, "proj-fan.png"), width = 12, height = 8, plot = g)
-
 
 # Risk calcs:
 

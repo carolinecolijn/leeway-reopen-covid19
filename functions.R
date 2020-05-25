@@ -113,8 +113,17 @@ make_hist <- function(df) {
     ggtitle(region)
 }
 
-fan_plot <- function(pred, obs) {
+fan_plot <- function(fit, pred, obs) {
+
+  .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
+  .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
+  .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
+  .e2 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.95) - 1
+
   ggplot(pred, aes(x = date)) +
+    geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
+    annotate("rect", xmin = .s1, xmax = .s2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5) +
+    annotate("rect", xmin = .e1, xmax = .e2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5) +
     geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
     geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
     scale_colour_viridis_d(end = 0.95) +
