@@ -50,9 +50,8 @@ country_lookup <- tibble::tribble(
   "WA", "US"
 )
 
-# # Multiplicative projection: ------------------------------------------------
-#
-PROJ <- 2 # days
+# Look at fits: ------------------------------------------------
+PROJ <- 1 # days
 set.seed(274929)
 
 F_MULTI <- 1.2
@@ -84,29 +83,7 @@ tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
   first_day <- min(obs$date)
   mutate(pred, date = seq(first_day, first_day + nrow(pred) - 1, by = "1 day"))
 })
-#
-# # With projection:
-# plots <- map2(tidy_projections, observed_data, function(pred, obs) {
-#   pred <- dplyr::filter(pred, date <= lubridate::ymd("2020-07-15"))
-#   custom_projection_plot(pred_dat = pred, obs_dat = obs) +
-#     ggtitle(unique(obs$region)) +
-#     coord_cartesian(
-#       expand = FALSE,
-#       xlim = c(
-#         lubridate::ymd("2020-03-01"),
-#         lubridate::ymd("2020-07-15")
-#       )
-#     )
-# })
-#
-# g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
-# ggsave(file.path(fig_folder, "projections-all-1.2.pdf"),
-#   width = 12, height = 8, plot = g
-# )
-# ggsave(file.path(fig_folder, "projections-all-1.2.png"),
-#   width = 12, height = 8, plot = g
-# )
-#
+
 # No projection:
 plots <- furrr::future_pmap(list(fits, tidy_projections, observed_data), function(fit, pred, obs) {
   pred <- dplyr::filter(pred, date <= max(obs$date))
@@ -252,6 +229,7 @@ ggsave(file.path(fig_folder, "proj-fan.png"), width = 12, height = 8, plot = g)
 N <- map_dfr(fits, ~tibble(N = .x$stan_data$x_r[["N"]]), .id = "region")
 
 hist_thresh <-
+  # map_dfr(list(projections_fan[["2"]]['BC']), function(x1) {
   map_dfr(projections_fan, function(x1) {
     map_dfr(x1, function(x2) {
       group_by(x2, .iteration) %>%
@@ -263,7 +241,7 @@ hist_thresh <-
     }, .id = "region")
   }, .id = "f_multi") %>%
   group_by(f_multi, region) %>%
-  left_join(N) %>%
+  left_join(N, by = "region") %>%
   summarise(
     p_above_hist_thresh = mean(above_hist_thresh),
     p_above_1_1000_N = mean(max_60 > N / 1000),
@@ -274,8 +252,25 @@ hist_thresh <-
   mutate(f_multi = as.numeric(f_multi))
 hist_thresh
 
+# check:
+bc <- projections_fan[["1.8"]][["BC"]]
+bc_summ <- group_by(bc, .iteration) %>%
+  summarise(
+    max_hist = max(y_rep[!forecast]),
+    max_60 = y_rep[day == max(day)],
+    above_hist_thresh = max_60 > max_hist
+  )
+plots <- ggplot(bc, aes(day, y_rep)) + geom_line() +
+  facet_wrap(~.iteration) +
+  geom_hline(aes(yintercept = max_60, colour = above_hist_thresh), data = bc_summ) +
+  geom_hline(aes(yintercept = max_hist), data = bc_summ) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "blue")) +
+  ggsidekick::theme_sleek()
+ggsave(file.path(fig_folder, "bc-hist-thresh-check.pdf"), width = 10, height = 10)
+ggsave(file.path(fig_folder, "bc-hist-thresh-check.png"), width = 10, height = 10)
+
 hist_thresh <- hist_thresh %>%
-  left_join(country_lookup)
+  left_join(country_lookup, by = "region")
 
 cols <- hist_thresh %>%
   group_by(region) %>%
@@ -298,19 +293,19 @@ hist_thresh_long <- hist_thresh %>% tidyr::pivot_longer(c(-f_multi, -region, -re
 
 g <- hist_thresh_long %>%
   ggplot(aes(f_multi, value, colour = region)) +
-  annotate("rect", xmin = 1.8, xmax = 2.2, ymin = 0,
+  annotate("rect", xmin = 1.8, xmax = 2.4, ymin = 0,
     ymax = 1, fill = "grey50", alpha = 0.1) +
   geom_line() +
   facet_grid(name~region_group) +
   ggsidekick::theme_sleek() +
-  ggrepel::geom_text_repel(data = filter(hist_thresh_long, f_multi == 1.8),
+  ggrepel::geom_text_repel(data = filter(hist_thresh_long, f_multi == 2),
     mapping = aes(x = f_multi, label = region), hjust = 0,
     direction = "y", nudge_x = 0.08,
     segment.colour = "grey65", segment.alpha = 0.7, segment.size = 0.3,
     size = 2.75) +
   theme(legend.position = "none", panel.spacing.y = unit(15, "pt")) +
   scale_color_manual(values = cols) +
-  coord_cartesian(expand = FALSE, xlim = c(1, 2.05), ylim = c(-0.015, 1.015)) +
+  coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(-0.015, 1.015)) +
   scale_x_continuous(breaks = unique(hist_thresh_long$f_multi)) +
   xlab("Contact rate increase")+ylab("Probability")
 
