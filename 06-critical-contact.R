@@ -2,7 +2,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 source("selfIsolationModel/contact-ratios/projection-prep.R")
 future::plan(future::multisession)
 
-ITER <- 1:300 # downsample for speed
+ITER <- 1:250 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER) # subroutine is parallel
 future::plan(future::sequential)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -31,7 +31,7 @@ ggplot(ratios, aes(ratio)) +
   geom_vline(xintercept = 1, lty = 2) +
   ggsidekick::theme_sleek()
 
-# Violin plots: -------------------------------------------------------------
+# Violin plots: -------------------------------------------------------
 
 set.seed(1)
 g <- ratios %>%

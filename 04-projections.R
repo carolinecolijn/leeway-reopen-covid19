@@ -2,7 +2,8 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 source("selfIsolationModel/contact-ratios/projection-prep.R")
 future::plan(future::multisession)
 
-# Look at fits: ------------------------------------------------
+# Look at fits: -------------------------------------------------------
+
 PROJ <- 1 # days
 set.seed(274929)
 
@@ -68,10 +69,9 @@ ggsave(file.path(fig_folder, "projections-all.png"),
 
 # Example projections at multiple levels for all regions: -------------------
 
-PROJ <- 60
+PROJ <- 8 * 7
 set.seed(12893)
-ITER_PROJ <- sample(seq_len(N_ITER), round(PROJ_ITER)) # *double* downsample for speed
-ITER_PROJ <- sample(seq_len(N_ITER), round(60)) # *double* downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), 100)
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
 projections_fan <- map(mults, function(.mult) {
@@ -111,7 +111,7 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
   left_join(pred, lu, by = "day")
 })
 
-# Plot!
+# Plot: ---------------------------------------------------------------
 
 stopifnot(identical(names(tidy_projections2), names(observed_data)))
 plots <- pmap(list(fits, tidy_projections2, observed_data), fan_plot)
@@ -120,7 +120,7 @@ g <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4)
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 12, height = 8, plot = g)
 ggsave(file.path(fig_folder, "proj-fan.png"), width = 12, height = 8, plot = g)
 
-# Risk calcs:
+# Risk calcs: ---------------------------------------------------------
 
 N <- map_dfr(fits, ~tibble(N = .x$stan_data$x_r[["N"]]), .id = "region")
 
@@ -148,7 +148,8 @@ hist_thresh <-
   mutate(f_multi = as.numeric(f_multi))
 hist_thresh
 
-# check:
+# check: --------------------------------------------------------------
+
 bc <- projections_fan[["1.8"]][["BC"]]
 bc_summ <- group_by(bc, .iteration) %>%
   summarise(
@@ -165,6 +166,8 @@ plots <- ggplot(bc, aes(day, y_rep)) + geom_line() +
 ggsave(file.path(fig_folder, "bc-hist-thresh-check.pdf"), width = 10, height = 10)
 ggsave(file.path(fig_folder, "bc-hist-thresh-check.png"), width = 10, height = 10)
 
+# plot probability of various thresholds: -----------------------------
+
 hist_thresh <- hist_thresh %>%
   left_join(country_lookup, by = "region")
 
@@ -175,17 +178,8 @@ cols <- hist_thresh %>%
   mutate(col = RColorBrewer::brewer.pal(8, "Dark2")[1:n()])
 cols <- cols$col %>% set_names(cols$region)
 
-# hist_thresh %>%
-#   ggplot(aes(f_multi, p_above_hist_thresh, colour = region)) +
-#   geom_line() +
-#   facet_wrap(~region_group) +
-#   ggsidekick::theme_sleek() +
-#   ggrepel::geom_text_repel(data = filter(hist_thresh, f_multi == 1.8),
-#     mapping = aes(x = f_multi + 0.01, label = region), hjust = 0, direction = "y") +
-#   theme(legend.position = "none") +
-#   scale_color_manual(values = cols)
-
-hist_thresh_long <- hist_thresh %>% tidyr::pivot_longer(c(-f_multi, -region, -region_group))
+hist_thresh_long <- hist_thresh %>% tidyr::pivot_longer(c(-f_multi, -region,
+  -region_group))
 
 g <- hist_thresh_long %>%
   ggplot(aes(f_multi, value, colour = region)) +
