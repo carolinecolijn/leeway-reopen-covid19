@@ -1,54 +1,6 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
-future::plan(future::sequential)
+source("selfIsolationModel/contact-ratios/projection-prep.R")
 future::plan(future::multisession)
-
-dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
-fig_folder <- "selfIsolationModel/contact-ratios/figs/"
-dir.create(dg_folder, showWarnings = FALSE)
-dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC", "BE", "CA", "DE", "FL", "MI", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE", "JP")
-REGIONS <- sort(REGIONS)
-N_ITER <- CHAINS * ITER / 2
-PROJ_ITER <- 100
-RESAMPLE_ITER <- 100
-
-obj_files <- paste0(dg_folder, REGIONS, "-fit.rds")
-obj_files
-
-fits <- map(obj_files, readRDS) %>% set_names(REGIONS)
-walk(fits, print)
-
-dat_files <- paste0(dg_folder, REGIONS, "-dat.rds")
-dat_files
-
-observed_data <- map(dat_files, readRDS) %>%
-  set_names(REGIONS) %>%
-  map(select, date, day, value)
-observed_data <- map(seq_along(observed_data), function(.x) {
-  temp <- observed_data[[.x]]
-  temp$region <- REGIONS[[.x]]
-  temp
-}) %>% set_names(REGIONS)
-observed_data
-
-country_lookup <- tibble::tribble(
-  ~region, ~region_group,
-  "BC", "CAN",
-  "BE", "EUR",
-  "CA", "US",
-  "DE", "EUR",
-  # "DK", "EUR",
-  "JP", "PAC",
-  "FL", "US",
-  "MI", "US",
-  "NY", "US",
-  "NZ", "PAC",
-  "ON", "CAN",
-  "QC", "CAN",
-  "SWE", "EUR",
-  "UK", "EUR",
-  "WA", "US"
-)
 
 # Look at fits: ------------------------------------------------
 PROJ <- 1 # days
@@ -113,62 +65,6 @@ ggsave(file.path(fig_folder, "projections-all.pdf"),
 ggsave(file.path(fig_folder, "projections-all.png"),
   width = 12, height = 8, plot = g
 )
-
-# Histograms ----------------------------------------------------------------
-
-# ITER <- sample(seq_len(N_ITER), 400) # downsample for speed (not matching iters!?)
-ITER <- 1:300 # downsample for speed
-thresholds <- map(fits, get_thresh, iter = ITER)
-saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
-thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
-# check:
-thresholds %>%
-  bind_rows(.id = "ignore") %>%
-  tidyr::pivot_longer(-1) %>%
-  ggplot(aes(value)) +
-  geom_histogram() +
-  facet_wrap(~name)
-
-f2 <- map(fits, ~ .x$post$f_s[ITER, 1])
-# check:
-f2 %>%
-  bind_rows(.id = "ignore") %>%
-  tidyr::pivot_longer(-1) %>%
-  ggplot(aes(value)) +
-  geom_histogram() +
-  facet_wrap(~name)
-
-ratios <- map2_dfr(thresholds, f2, ~ tibble(ratio = .y / .x), .id = "region")
-ggplot(ratios, aes(ratio)) +
-  facet_wrap(~region) +
-  geom_histogram() +
-  geom_vline(xintercept = 1, lty = 2) +
-  ggsidekick::theme_sleek()
-
-# hists <- group_split(ratios, region) %>% map(make_hist)
-# g <- cowplot::plot_grid(plotlist = hists, align = "hv")
-# ggsave(file.path(fig_folder, "contact-ratios.pdf"), width = 8, height = 6.5, plot = g)
-# ggsave(file.path(fig_folder, "contact-ratios.png"), width = 8, height = 6.5, plot = g)
-
-# Violin plots: -------------------------------------------------------------
-
-set.seed(1)
-g <- ratios %>%
-  left_join(country_lookup) %>%
-  mutate(region_group = forcats::fct_shuffle(region_group)) %>%
-  group_by(region) %>%
-  mutate(mean_ratio = mean(ratio)) %>%
-  ungroup() %>%
-  ggplot(aes(x = forcats::fct_reorder(region, -mean_ratio), y = ratio)) +
-  geom_hline(yintercept = 1, alpha = 0.4) +
-  geom_violin(aes(fill = region_group), colour = "grey40", lwd = 0.35) +
-  coord_flip(ylim = c(0, 1.4), expand = FALSE) +
-  ggsidekick::theme_sleek() +
-  scale_fill_brewer(palette = "Set3") +
-  theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
-  labs(fill = "Region", y = "Threshold ratio")
-ggsave(file.path(fig_folder, "ratio-violins.pdf"), width = 4, height = 5)
-ggsave(file.path(fig_folder, "ratio-violins.png"), width = 4, height = 5)
 
 # Example projections at multiple levels for all regions: -------------------
 

@@ -144,7 +144,7 @@ fan_plot <- function(fit, pred, obs) {
     ) +
     annotate("rect",
       xmin = max(obs$date), xmax = ymd("2020-07-15"), fill = "grey40", alpha = 0.1,
-      ymin = 0, ymax = max(obs$value, na.rm = TRUE) * 2
+      ymin = 0, ymax = Inf,
     ) +
     coord_cartesian(
       expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
