@@ -20,7 +20,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 #   # geom_vline(xintercept = ymd("2020-03-24")) +
 #   geom_vline(xintercept = ymd("2020-03-27"))
 
-d <- readr::read_csv(file.path(this_folder, "data-raw/covid-cases-confirmed-22may20-NZ.csv"), skip = 3)
+d <- readr::read_csv(file.path(this_folder, "data-raw/covid-cases-confirmed-26may20-NZ.csv"), skip = 3)
 d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas travel`) %>%
   select(date, overseas) %>%
   mutate(date = dmy(date)) %>%
