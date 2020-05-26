@@ -1,11 +1,13 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 source("selfIsolationModel/contact-ratios/projection-prep.R")
 
-PROJ <- 30
+WEEKS <- 8
+PROJ <- WEEKS * 7
+CASE_PER_WEEK <- 10
 set.seed(12893)
-ITER_PROJ <- sample(seq_len(N_ITER), 100)
+ITER_PROJ <- sample(seq_len(N_ITER), 80)
 mults <- seq(1, 2, 0.2) %>% set_names()
-imports <- c(0, 50) %>% set_names()
+imports <- c(0, CASE_PER_WEEK * WEEKS) %>% set_names()
 round_time <- seq(50, 500) # time increments to save for efficiency
 
 future::plan(future::multisession)
@@ -26,7 +28,7 @@ projections_imp <-
           f_multi = rep(.mult, PROJ),
           f_multi_seg = 1,
           imported_cases = .import,
-          imported_window = 7,
+          imported_window = PROJ,
           return_states = TRUE
         )
         dplyr::filter(
