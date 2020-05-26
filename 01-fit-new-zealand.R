@@ -20,7 +20,12 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 #   # geom_vline(xintercept = ymd("2020-03-24")) +
 #   geom_vline(xintercept = ymd("2020-03-27"))
 
-d <- readr::read_csv(file.path(this_folder, "data-raw/covid-cases-confirmed-26may20-NZ.csv"), skip = 3)
+latest_data <- "26may20"                # gets used in filename here, and later
+                                        # to add 0's after final case
+d <- readr::read_csv(file.path(this_folder,
+                               paste0("data-raw/covid-cases-confirmed-",
+                                      latest_data,
+                                      "-NZ.csv")), skip = 3)
 d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas travel`) %>%
   select(date, overseas) %>%
   mutate(date = dmy(date)) %>%
@@ -30,6 +35,7 @@ d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas tr
     not_overseas_cases = sum(overseas == "No", na.rm = TRUE)
   )
 d
+
 
 tidyr::pivot_longer(d, -date) %>%
   ggplot(aes(date, value, colour = name)) +
@@ -46,7 +52,8 @@ nz <- filter(d, date >= ymd("2020-03-15"))
 nz$all_cases
 diff(nz$date)
 
-nz <- left_join(tibble(date = seq(min(nz$date), max(nz$date), by = "1 day")), nz)
+# latest_data here ensures we get 0's since last reported case
+nz <- left_join(tibble(date = seq(min(nz$date), dmy(latest_data), by = "1 day")), nz)
 nz$all_cases
 nz$not_overseas_cases
 # nz$not_overseas_cases[is.na(nz$not_overseas_cases)] <- 0
