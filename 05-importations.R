@@ -28,9 +28,9 @@ projections_imp <-
       }, .id = "import")
     }, .id = "region")
   }, .id = "f_multi")
+future::plan(future::sequential)
 saveRDS(projections_imp, file = file.path(dg_folder, "projections-multi-imp.rds"))
 projections_imp <- readRDS(file.path(dg_folder, "projections-multi-imp.rds"))
-
 
 import_cases <- projections_imp %>%
   dplyr::filter(variable %in% c("R", "Rd")) %>%
