@@ -200,9 +200,9 @@ fan_plot2 <- function(fit, pred, obs) {
       xlim = c(ymd("2020-03-01"), ymd("2020-07-12"))
     ) +
     ggsidekick::theme_sleek() +
-    theme(axis.title.x.bottom = element_blank()) +
+    theme(axis.title.x.bottom = element_blank(), legend.position = "none") +
     labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
-    guides(fill = FALSE, colour = FALSE) +
+    # guides(fill = FALSE, colour = FALSE) +
     scale_y_continuous(breaks = scales::breaks_pretty(n = 4))
   # ggtitle(unique(obs$region))
 }

@@ -4,13 +4,16 @@ future::plan(future::multisession)
 
 # Critical contact: ---------------------------
 
-future::plan(future::multisession)
-
 ITER <- 1:200 # downsample for speed
 thresholds <- map(fits, get_thresh, iter = ITER) # subroutine is parallel
 future::plan(future::sequential)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
+
+if ("SWE" %in% names(thresholds)) {
+  names(thresholds)[names(thresholds) == "SWE"] <- "SE"
+}
+
 f1 <- map(fits, ~ .x$post$f_s[ITER, 1])
 # check:
 # f1 %>%
@@ -67,11 +70,13 @@ projections_fan <- map(mults, function(.mult) {
 saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
 projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
 
+future::plan(future::multisession)
 tidy_projections <- furrr::future_map(projections_fan, function(x) {
   map(x, function(y) {
     covidseir::tidy_seir(y, resample_y_rep = RESAMPLE_ITER)
   })
 })
+future::plan(future::sequential)
 tidy_projections1 <- map(tidy_projections, bind_rows, .id = "region")
 tidy_projections1 <- tidy_projections1 %>% bind_rows(.id = "f_multi")
 tidy_projections1 <- split(tidy_projections1, tidy_projections1$region)
@@ -86,6 +91,10 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
   left_join(pred, lu, by = "day")
 })
 
+if ("SWE" %in% names(tidy_projections2)) {
+  names(tidy_projections2)[names(tidy_projections2) == "SWE"] <- "SE"
+}
+
 future::plan(future::sequential)
 
 # Violin plots: -------------------------------------------------------
@@ -98,10 +107,10 @@ ratios_ordered <- ratios %>%
   mutate(mean_ratio1 = mean(ratio1), mean_ratio2 = mean(ratio2)) %>%
   mutate(ratio_used_proj = min(c(mean_ratio1, mean_ratio1))) %>%
   ungroup(region) %>%
-  mutate(region_ordered = forcats::fct_reorder(region, -ratio_used_proj))
+  mutate(region_ordered = forcats::fct_reorder(region, ratio_used_proj))
 
 cols <- RColorBrewer::brewer.pal(length(unique(ratios_ordered$country)), "Set3")
-regs <- c("UK", "SWE", "NZ", "JP", "CAN", "US", "BE", "DE")
+regs <- c("UK", "SE", "NZ", "JP", "CAN", "US", "BE", "DE")
 stopifnot(identical(sort(regs), sort(unique(ratios_ordered$country))))
 names(cols) <- regs
 
@@ -140,7 +149,7 @@ violins <- ratios_ordered %>%
   labs(fill = "Region", y = "Threshold ratio") +
   cowplot::draw_label("A",
     x = length(unique(ratios_ordered$region)) - 0.2, # coord_flip()!
-    y = 1.35, hjust = 1, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
+    y = 0.2, hjust = 1, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
   )
 # violins
 # ggsave(file.path(fig_folder, "ratio-violins.pdf"), width = 3, height = 7)
@@ -177,13 +186,18 @@ for (i in c(2, 3, 5, 6, 8, 9, 11, 12)) {
   plots[[i]] <- plots[[i]] +
     theme(axis.title.y.left = element_blank())
 }
+plots[[12]] <- plots[[12]] + guides(fill = FALSE) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, lwd = 0.8), reverse = TRUE)) + theme(
+  legend.position = c(0.81, 0.5),
+  legend.text = element_text(size = 7),
+  legend.title = element_text(size = 7),
+  legend.key.size = unit(7, "pt"),
+  legend.spacing.y = unit(2, "pt"), legend.background = element_rect(fill = NA, colour = NA)) +
+  labs(colour = "Contact-rate\nincrease", fill = "Contact-rate\nincrease")
 projections <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4) +
   theme(plot.margin = margin(t = 5, r = 6, b = 10, l = -900))
 projections <- projections +
   cowplot::draw_text("Reported cases", x = -0.02, y = 0.5, angle = 90, size = 10, col = "grey30")
-
-empty <- ggplot() +
-  theme_void()
 
 g1 <-
   violins + theme(
@@ -198,4 +212,4 @@ g <- cowplot::plot_grid(g1, projections, rel_widths = c(1, 4), align = "hv", axi
   theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 3))
 
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 8.2, height = 4.3, plot = g)
-ggsave(file.path(fig_folder, "proj-fan.png"), width = 8.2, height = 4.3, plot = g, dpi = 300)
+ggsave(file.path(fig_folder, "proj-fan.png"), width = 8.2, height = 4.3, plot = g, dpi = 400)
