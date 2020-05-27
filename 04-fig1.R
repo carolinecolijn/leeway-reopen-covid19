@@ -39,7 +39,7 @@ ratios <- pmap_dfr(list(thresholds, f1, f2),
 
 f1_vs_f2 <- group_by(ratios, region) %>%
   summarise(f1_lower = mean(ratio1) < mean(ratio2))
-f1_vs_f2
+saveRDS(f1_vs_f2, file = file.path(dg_folder, "f1_vs_f2.rds"))
 
 # Projections -----------------------------
 
