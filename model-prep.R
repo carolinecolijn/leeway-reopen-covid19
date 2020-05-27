@@ -1,5 +1,6 @@
 library(dplyr)
 library(ggplot2)
+theme_set(ggsidekick::theme_sleek())
 library(covidseir)
 library(purrr)
 library(future)
