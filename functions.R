@@ -157,6 +157,57 @@ fan_plot <- function(fit, pred, obs) {
     ggtitle(unique(obs$region))
 }
 
+fan_plot2 <- function(fit, pred, obs) {
+
+  .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
+  .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
+  .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
+  .e2 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.95) - 1
+
+  pred_hist <- filter(pred, day <= max(obs$day))
+  pred <- filter(pred, day >= max(obs$day))
+
+  ggplot(pred, aes(x = date)) +
+    geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
+    annotate("rect", xmin = .s1, xmax = .s2, ymin = 0, ymax = Inf, fill = "grey60", alpha = 0.55) +
+    annotate("rect", xmin = .e1, xmax = .e2, ymin = 0, ymax = Inf, fill = "grey60", alpha = 0.55) +
+    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95), data = pred_hist, alpha = 0.40, fill = "grey30") +
+    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
+    scale_colour_viridis_d(end = 0.95) +
+    scale_fill_viridis_d(end = 0.95) +
+    geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
+    geom_line(aes(y = y_rep_0.50), data = pred_hist, lwd = 0.9, colour = "grey40") +
+    ylab("Reported cases") +
+    theme(axis.title.x = element_blank()) +
+    geom_line(
+      data = obs,
+      col = "black", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      lwd = 0.35, alpha = 0.9
+    ) +
+    geom_point(
+      data = obs,
+      col = "grey30", inherit.aes = FALSE,
+      aes_string(x = "date", y = "value"),
+      pch = 21, fill = "grey95", size = 1.15
+    ) +
+    annotate("rect",
+      xmin = max(obs$date), xmax = ymd("2020-07-15"), fill = "grey40", alpha = 0.1,
+      ymin = 0, ymax = Inf,
+    ) +
+    coord_cartesian(
+      expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
+      xlim = c(ymd("2020-03-01"), ymd("2020-07-12"))
+    ) +
+    ggsidekick::theme_sleek() +
+    theme(axis.title.x.bottom = element_blank()) +
+    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
+    guides(fill = FALSE, colour = FALSE) +
+    scale_y_continuous(breaks = scales::breaks_pretty(n = 4))
+  # ggtitle(unique(obs$region))
+}
+
+
 make_f_seg <- function(.dat, .date = "2020-05-01") {
   f_seg <- c(0L, rep(1L, nrow(.dat) - 1))
   day_new_f <- which(.dat$date == lubridate::ymd(.date))
