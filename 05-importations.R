@@ -65,16 +65,45 @@ R <- projections_imp %>%
   group_by(f_multi, region, import, .iteration, time) %>%
   summarise(cases = value[variable == "R"] + value[variable == "Rd"])
 
-g <- R %>%
-  filter(time > 70) %>%
-  group_by(time, f_multi, region, .iteration) %>%
-  summarise(extra_R_Rd = cases[import == "50"] - cases[import == "0"]) %>%
-  ggplot(aes(time, extra_R_Rd, colour = f_multi, group = paste(.iteration, f_multi))) +
-  geom_line(alpha = 0.3) +
+last_obs <- observed_data %>% map_dfr(~tibble(.last_obs = max(.$day)), .id = "region")
+
+extra_cases <- R %>%
+  filter(time > 50) %>%
+  filter(!f_multi %in% "2") %>%
+  left_join(last_obs) %>%
+  group_by(region) %>%
+  filter(time <= .last_obs + 42, time >= .last_obs) %>%
+  mutate(day = time - .last_obs + 1) %>%
+  group_by(day, f_multi, region, .iteration) %>%
+  summarise(
+    orig_R_Rd = cases[import == "0"],
+    extra_R_Rd = cases[import == names(imports[2])] - cases[import == "0"],
+    extra_R_Rd1 = extra_R_Rd / 10,
+    extra_R_Rd10 = extra_R_Rd,
+    extra_frac_R_Rd1 = extra_R_Rd1 / orig_R_Rd * 100,
+    extra_perc_R_Rd10 = extra_R_Rd10 / orig_R_Rd * 100
+  )
+
+# extra_cases %>%
+#   ggplot(aes(day, extra_perc_R_Rd10, colour = f_multi, group = paste(.iteration, f_multi))) +
+#   geom_line(alpha = 0.35) +
+#   facet_wrap(~region, scales = "free_y") +
+#   scale_colour_viridis_d(option = "C") +
+#   ylab("Extra cases") +
+#   coord_cartesian(expand = FALSE) +
+#   guides(colour = guide_legend(override.aes = list(alpha = 1), reverse = TRUE))
+
+
+g <- extra_cases %>%
+  ggplot(aes(day, extra_R_Rd1, colour = f_multi, group = paste(.iteration, f_multi))) +
+  geom_line(alpha = 0.35) +
   facet_wrap(~region, scales = "free_y") +
-  theme_light() +
-  scale_color_brewer(palette = "Spectral", direction = -1) +
+  scale_colour_viridis_d(option = "C") +
+  ylab("Extra cases") +
+  coord_cartesian(expand = FALSE) +
   guides(colour = guide_legend(override.aes = list(alpha = 1), reverse = TRUE))
+
+
 ggsave(file.path(fig_folder, "proj-new-R-Rd.png"), width = 12, height = 9)
 ggsave(file.path(fig_folder, "proj-new-R-Rd.pdf"), width = 12, height = 9)
 
@@ -91,10 +120,29 @@ g <- import_cases %>%
   geom_density(position = "identity", alpha = 0.3) +
   facet_wrap(~region, scales = "free_x") +
   scale_x_log10() +
-  theme_light() +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
-  scale_colour_brewer(palette = "Spectral", direction = -1) +
+  # scale_fill_brewer(palette = "Spectral", direction = -1) +
+  # scale_colour_brewer(palette = "Spectral", direction = -1) +
+  scale_colour_viridis_d() +
+  scale_fill_viridis_d() +
   guides(colour = guide_legend(reverse = TRUE), fill = guide_legend(reverse = TRUE))
+
+make_dens_plot <- function(dat) {
+  dat %>% group_by(region) %>% filter(day == max(day)) %>%
+    ggplot(aes(extra_R_Rd1, fill = f_multi, colour = f_multi)) +
+    # geom_violin(alpha = 0.5) +
+    # geom_histogram(position = "identity", alpha = 0.1) +
+    geom_density(position = "identity", alpha = 0.4) +
+    # facet_wrap(~region, scales = "") +
+    scale_x_log10() +
+    # coord_cartesian(xlim = c(5, 200)) +
+    scale_colour_viridis_d() +
+    scale_fill_viridis_d()
+  # coord_flip()
+  # scale_fill_brewer(palette = "Spectral", direction = 1) +
+  # scale_colour_brewer(palette = "Spectral", direction = 1)
+}
+
+group_split(import_cases, region)
 
 ggsave(file.path(fig_folder, "hist-imports.pdf"), width = 9, height = 9)
 ggsave(file.path(fig_folder, "hist-imports.png"), width = 9, height = 9)
