@@ -34,7 +34,7 @@ dat$value <- dat$cases
 ggplot(dat, aes(day, ncases)) +
   geom_line(color="blue") + geom_point(aes(day, cases), color="red")
 
-saveRDS(dat, file.path(this_folder, "data-generated/SWE-dat.rds"))
+saveRDS(dat, file.path(this_folder, "data-generated/SE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -64,7 +64,7 @@ if (!file.exists(fit_file)) {
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, file.path(this_folder, "data-generated/SWE-fit.rds"))
+saveRDS(fit, file.path(this_folder, "data-generated/SE-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 # dat$value <- dat$cases #plot using actual cases

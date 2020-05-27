@@ -2,7 +2,7 @@ dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
 fig_folder <- "selfIsolationModel/contact-ratios/figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
-REGIONS <- c("BC", "BE", "CA", "DE", "NY", "NZ", "ON", "QC", "UK", "WA", "SWE", "JP")
+REGIONS <- c("BC", "BE", "CA", "DE", "NY", "NZ", "ON", "QC", "UK", "WA", "SE", "JP")
 REGIONS <- sort(REGIONS)
 N_ITER <- CHAINS * ITER / 2
 PROJ_ITER <- 100
@@ -40,7 +40,7 @@ country_lookup <- tibble::tribble(
   "NZ", "PAC", "New Zealand", "NZ",
   "ON", "CAN", "Ontario", "CAN",
   "QC", "CAN", "Québec", "CAN",
-  "SWE", "EUR", "Sweden", "SWE",
+  "SE", "EUR", "Sweden", "SE",
   "UK", "EUR", "United Kingdom", "UK",
   "WA", "US", "Washington", "US"
 )
