@@ -18,7 +18,7 @@ f1 <- map(fits, ~ .x$post$f_s[ITER, 1])
 #   tidyr::pivot_longer(-1) %>%
 #   ggplot(aes(value)) +
 #   geom_histogram() +
-facet_wrap(~name)
+# facet_wrap(~name)
 f2 <- map(fits, ~ .x$post$f_s[ITER, 2])
 # check:
 # f2 %>%

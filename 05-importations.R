@@ -42,28 +42,29 @@ tictoc::toc()
 future::plan(future::sequential)
 saveRDS(projections_imp, file = file.path(dg_folder, "projections-multi-imp1.rds"))
 projections_imp <- readRDS(file.path(dg_folder, "projections-multi-imp1.rds"))
+projections_imp <- filter(projections_imp, !region %in% c("MI", "FL"))
 
-R <- projections_imp %>%
-  filter(variable %in% c("R", "Rd")) %>%
-  filter(f_multi %in% 1.6) %>%
-  group_by(f_multi, region, import, .iteration, time) %>%
-  summarise(R_Rd = value[variable == "R"] + value[variable == "Rd"])
-
-g <- ggplot(
-  R,
-  aes(time, R_Rd, colour = import, group = paste(.iteration, import))
-) +
-  geom_line(alpha = 0.3) +
-  facet_wrap(~region, scales = "free_y") +
-  coord_cartesian(xlim = c(60, 150)) +
-  theme_light()
-ggsave(file.path(fig_folder, "proj-R.png"), width = 12, height = 9)
-
-R <- projections_imp %>%
-  filter(time %in% round_time) %>%
-  filter(variable %in% c("R", "Rd")) %>%
-  group_by(f_multi, region, import, .iteration, time) %>%
-  summarise(cases = value[variable == "R"] + value[variable == "Rd"])
+# R <- projections_imp %>%
+#   filter(variable %in% c("R", "Rd")) %>%
+#   filter(f_multi %in% 1.6) %>%
+#   group_by(f_multi, region, import, .iteration, time) %>%
+#   summarise(R_Rd = value[variable == "R"] + value[variable == "Rd"])
+#
+# g <- ggplot(
+#   R,
+#   aes(time, R_Rd, colour = import, group = paste(.iteration, import))
+# ) +
+#   geom_line(alpha = 0.3) +
+#   facet_wrap(~region, scales = "free_y") +
+#   coord_cartesian(xlim = c(60, 150)) +
+#   theme_light()
+# ggsave(file.path(fig_folder, "proj-R.png"), width = 12, height = 9)
+#
+# R <- projections_imp %>%
+#   filter(time %in% round_time) %>%
+#   filter(variable %in% c("R", "Rd")) %>%
+#   group_by(f_multi, region, import, .iteration, time) %>%
+#   summarise(cases = value[variable == "R"] + value[variable == "Rd"])
 
 last_obs <- observed_data %>% map_dfr(~tibble(.last_obs = max(.$day)), .id = "region")
 
@@ -98,51 +99,89 @@ g <- extra_cases %>%
   ggplot(aes(day, extra_R_Rd1, colour = f_multi, group = paste(.iteration, f_multi))) +
   geom_line(alpha = 0.35) +
   facet_wrap(~region, scales = "free_y") +
-  scale_colour_viridis_d(option = "C") +
+  scale_colour_viridis_d(option = "D") +
   ylab("Extra cases") +
   coord_cartesian(expand = FALSE) +
   guides(colour = guide_legend(override.aes = list(alpha = 1), reverse = TRUE))
 
-
 ggsave(file.path(fig_folder, "proj-new-R-Rd.png"), width = 12, height = 9)
 ggsave(file.path(fig_folder, "proj-new-R-Rd.pdf"), width = 12, height = 9)
 
-import_cases <- projections_imp %>%
+ import_cases <- projections_imp %>%
   filter(variable %in% c("R", "Rd")) %>%
   group_by(f_multi, region, import, .iteration) %>%
-  filter(time == max(time)) %>%
+  filter(time == max(time) - 14) %>%
   summarise(cases = value[variable == "R"] + value[variable == "Rd"]) %>%
   group_by(f_multi, region, .iteration) %>%
-  summarise(extra_R_Rd = cases[import == "50"] - cases[import == "0"])
+  summarise(extra_R_Rd = cases[import == names(imports[2])] - cases[import == "0"])
 
-g <- import_cases %>%
-  ggplot(aes(extra_R_Rd, fill = f_multi, colour = f_multi)) +
-  geom_density(position = "identity", alpha = 0.3) +
-  facet_wrap(~region, scales = "free_x") +
-  scale_x_log10() +
-  # scale_fill_brewer(palette = "Spectral", direction = -1) +
-  # scale_colour_brewer(palette = "Spectral", direction = -1) +
-  scale_colour_viridis_d() +
-  scale_fill_viridis_d() +
-  guides(colour = guide_legend(reverse = TRUE), fill = guide_legend(reverse = TRUE))
+import_cases_q <- import_cases %>%
+  mutate(extra_R_Rd1 = extra_R_Rd / 10) %>%
+  group_by(f_multi, region) %>%
+  summarise(
+    q0.05 = quantile(extra_R_Rd1, probs = 0.05),
+    q0.25 = quantile(extra_R_Rd1, probs = 0.25),
+    q0.50 = quantile(extra_R_Rd1, probs = 0.50),
+    q0.75 = quantile(extra_R_Rd1, probs = 0.75),
+    q0.95 = quantile(extra_R_Rd1, probs = 0.95)
+  )
 
-make_dens_plot <- function(dat) {
-  dat %>% group_by(region) %>% filter(day == max(day)) %>%
-    ggplot(aes(extra_R_Rd1, fill = f_multi, colour = f_multi)) +
-    # geom_violin(alpha = 0.5) +
-    # geom_histogram(position = "identity", alpha = 0.1) +
-    geom_density(position = "identity", alpha = 0.4) +
-    # facet_wrap(~region, scales = "") +
-    scale_x_log10() +
-    # coord_cartesian(xlim = c(5, 200)) +
-    scale_colour_viridis_d() +
-    scale_fill_viridis_d()
-  # coord_flip()
-  # scale_fill_brewer(palette = "Spectral", direction = 1) +
-  # scale_colour_brewer(palette = "Spectral", direction = 1)
+# f1_vs_f2 <- readRDS(...)
+
+.width <- 0.9
+g <- import_cases_q %>%
+  group_by(region) %>%
+  left_join(country_lookup) %>%
+  mutate(mean_cases = mean(q0.50)) %>%
+  ungroup() %>%
+  mutate(region_long = forcats::fct_reorder(region_long, mean_cases)) %>%
+  ggplot(aes(x = region_long, colour = f_multi)) +
+  geom_point(aes(y = q0.50), position = position_dodge(width = .width)) +
+  geom_linerange(aes(ymin = q0.05, ymax = q0.95), position = position_dodge(width = .width), lwd = 0.4) +
+  geom_linerange(aes(ymin = q0.25, ymax = q0.75), position = position_dodge(width = .width), lwd = 0.9) +
+  scale_colour_viridis_d(guide = guide_legend(reverse = TRUE)) +
+  scale_y_log10() +
+  coord_flip(ylim = c(7, NA), expand = TRUE) +
+  theme(legend.position = c(0.792, 0.185), legend.background = element_rect(fill = "#ffffff90"), legend.key.size = unit(10, "pt"), axis.title.y.left = element_blank(), axis.title.x.bottom = element_text(size = 10), axis.text.x.bottom = element_text(size = 10), axis.text.y.left = element_text(size = 8.5, angle = 0)) +
+  labs(colour = "Contact-rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week")
+
+for (i in seq(2, 12, 2)) {
+  g <- g + annotate("rect", xmin = i - 0.5, xmax = i + if (i < 12) 0.5 else 0.7, ymin = 2, ymax = Inf, col = NA, fill = "grey60", alpha = 0.2)
 }
 
-group_split(import_cases, region)
+ggsave(file.path(fig_folder, "imports.pdf"), width = 3.5, height = 4.5)
 
-ggsave(file.path(fig_folder, "hist-imports.pdf"), width = 9, height = 9)
-ggsave(file.path(fig_folder, "hist-imports.png"), width = 9, height = 9)
+g <- g + theme(legend.position = c(0.807, 0.19))
+ggsave(file.path(fig_folder, "imports.png"), width = 3.5, height = 4.5, dpi = 400)
+
+# g <- import_cases %>%
+#   ggplot(aes(extra_R_Rd, fill = f_multi, colour = f_multi)) +
+#   geom_density(position = "identity", alpha = 0.3) +
+#   facet_wrap(~region, scales = "free_x") +
+#   scale_x_log10() +
+#   # scale_fill_brewer(palette = "Spectral", direction = -1) +
+#   # scale_colour_brewer(palette = "Spectral", direction = -1) +
+#   scale_colour_viridis_d() +
+#   scale_fill_viridis_d() +
+#   guides(colour = guide_legend(reverse = TRUE), fill = guide_legend(reverse = TRUE))
+#
+# make_dens_plot <- function(dat) {
+#   dat %>% group_by(region) %>% filter(day == max(day)) %>%
+#     ggplot(aes(extra_R_Rd1, fill = f_multi, colour = f_multi)) +
+#     # geom_violin(alpha = 0.5) +
+#     # geom_histogram(position = "identity", alpha = 0.1) +
+#     geom_density(position = "identity", alpha = 0.4) +
+#     # facet_wrap(~region, scales = "") +
+#     scale_x_log10() +
+#     # coord_cartesian(xlim = c(5, 200)) +
+#     scale_colour_viridis_d() +
+#     scale_fill_viridis_d()
+#   # coord_flip()
+#   # scale_fill_brewer(palette = "Spectral", direction = 1) +
+#   # scale_colour_brewer(palette = "Spectral", direction = 1)
+# }
+#
+# group_split(import_cases, region)
+#
+# ggsave(file.path(fig_folder, "hist-imports.pdf"), width = 9, height = 9)
+# ggsave(file.path(fig_folder, "hist-imports.png"), width = 9, height = 9)
