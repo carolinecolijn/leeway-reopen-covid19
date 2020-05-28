@@ -31,16 +31,16 @@ country_lookup <- tibble::tribble(
   ~region, ~region_group, ~region_long, ~country,
   "BC", "CAN", "British Columbia", "CAN",
   "BE", "EUR", "Belgium", "BE",
-  "CA", "US", "California", "US",
-  "DE", "EUR", "Denmark", "DE",
+  "CA", "US",  "California", "US",
+  "DE", "EUR", "Germany", "DE",
   "JP", "PAC", "Japan", "JP",
-  "FL", "US", "Florida", "US",
-  "MI", "US", "Michigan", "US",
-  "NY", "US", "New York", "US",
+  "FL", "US",  "Florida", "US",
+  "MI", "US",  "Michigan", "US",
+  "NY", "US",  "New York", "US",
   "NZ", "PAC", "New Zealand", "NZ",
   "ON", "CAN", "Ontario", "CAN",
   "QC", "CAN", "Québec", "CAN",
   "SE", "EUR", "Sweden", "SE",
   "UK", "EUR", "United Kingdom", "UK",
-  "WA", "US", "Washington", "US"
+  "WA", "US",  "Washington", "US"
 )
