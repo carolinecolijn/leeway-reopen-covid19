@@ -212,4 +212,4 @@ g <- cowplot::plot_grid(g1, projections, rel_widths = c(1, 4), align = "hv", axi
   theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 3))
 
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 8.2, height = 4.3, plot = g)
-ggsave(file.path(fig_folder, "proj-fan.png"), width = 8.2, height = 4.3, plot = g, dpi = 400)
+ggsave(file.path(fig_folder, "proj-fan.png"), width = 8.2, height = 4.3, plot = g, dpi = 500)
