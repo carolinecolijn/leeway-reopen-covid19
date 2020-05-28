@@ -99,5 +99,7 @@ kableExtra::kable(details,
                   format = "latex",
                   booktabs = TRUE,
                   escape = FALSE) %>%
-  kableExtra::column_spec(1, width="40mm")
+  kableExtra::column_spec(1, width="30mm") %>%
+  kableExtra::column_spec(2, width="10mm") %>%
+  kableExtra::kable_styling(font_size = 8)
 # Then paste that into .tex on Overleaf
