@@ -34,7 +34,6 @@ source("selfIsolationModel/contact-ratios/projection-prep.R")
 # If order of Details column changes then also need to change order in the loop, this
 details <- tibble::tibble("Detail" = c("Data start",
                                        "Data end",
-                                       "$1/\\sqrt \\phi$ prior: sd (**check)",
                                        "$f_2$ ramp start prior mean",
                                        "$f_2$ ramp end prior mean",
                                        "$e$: proportion distancing (transformed prior**)",
@@ -57,7 +56,6 @@ for(i in 1:length(REGIONS)){
                                              label = TRUE,
                                              abbr = TRUE),
                             lubridate::day(max(observed_data[[i]]$date))),
-                      fits[[i]]$phi_prior,
                       paste(lubridate::month(exp(fits[[i]]$start_decline_prior)[1]
                                              + min(observed_data[[i]]$date),
                                              label = TRUE,
