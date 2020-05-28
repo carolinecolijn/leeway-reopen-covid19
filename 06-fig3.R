@@ -108,7 +108,7 @@ g <- extra_cases %>%
 ggsave(file.path(fig_folder, "proj-new-R-Rd.png"), width = 12, height = 9)
 ggsave(file.path(fig_folder, "proj-new-R-Rd.pdf"), width = 12, height = 9)
 
- import_cases <- projections_imp %>%
+import_cases <- projections_imp %>%
   filter(variable %in% c("R", "Rd")) %>%
   group_by(f_multi, region, import, .iteration) %>%
   filter(time == max(time) - 14) %>%
@@ -126,8 +126,6 @@ import_cases_q <- import_cases %>%
     q0.75 = quantile(extra_R_Rd1, probs = 0.75),
     q0.95 = quantile(extra_R_Rd1, probs = 0.95)
   )
-
-# f1_vs_f2 <- readRDS(...)
 
 .width <- 0.9
 g <- import_cases_q %>%
@@ -154,35 +152,3 @@ ggsave(file.path(fig_folder, "imports.pdf"), width = 3.5, height = 4.5)
 
 g <- g + theme(legend.position = c(0.807, 0.19))
 ggsave(file.path(fig_folder, "imports.png"), width = 3.5, height = 4.5, dpi = 400)
-
-# g <- import_cases %>%
-#   ggplot(aes(extra_R_Rd, fill = f_multi, colour = f_multi)) +
-#   geom_density(position = "identity", alpha = 0.3) +
-#   facet_wrap(~region, scales = "free_x") +
-#   scale_x_log10() +
-#   # scale_fill_brewer(palette = "Spectral", direction = -1) +
-#   # scale_colour_brewer(palette = "Spectral", direction = -1) +
-#   scale_colour_viridis_d() +
-#   scale_fill_viridis_d() +
-#   guides(colour = guide_legend(reverse = TRUE), fill = guide_legend(reverse = TRUE))
-#
-# make_dens_plot <- function(dat) {
-#   dat %>% group_by(region) %>% filter(day == max(day)) %>%
-#     ggplot(aes(extra_R_Rd1, fill = f_multi, colour = f_multi)) +
-#     # geom_violin(alpha = 0.5) +
-#     # geom_histogram(position = "identity", alpha = 0.1) +
-#     geom_density(position = "identity", alpha = 0.4) +
-#     # facet_wrap(~region, scales = "") +
-#     scale_x_log10() +
-#     # coord_cartesian(xlim = c(5, 200)) +
-#     scale_colour_viridis_d() +
-#     scale_fill_viridis_d()
-#   # coord_flip()
-#   # scale_fill_brewer(palette = "Spectral", direction = 1) +
-#   # scale_colour_brewer(palette = "Spectral", direction = 1)
-# }
-#
-# group_split(import_cases, region)
-#
-# ggsave(file.path(fig_folder, "hist-imports.pdf"), width = 9, height = 9)
-# ggsave(file.path(fig_folder, "hist-imports.png"), width = 9, height = 9)

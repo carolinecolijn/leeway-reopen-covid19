@@ -5,7 +5,7 @@ future::plan(future::multisession)
 # Look at fits: -------------------------------------------------------
 
 set.seed(274929)
-ITER_PROJ <- sample(seq_len(N_ITER), PROJ_ITER) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), 250) # downsample for speed
 
 projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
   days <- length(.y$day)
@@ -16,13 +16,14 @@ projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
   )
 })
 
-saveRDS(projections_multi, file = file.path(dg_folder, "all-projections-multi-1.2.rds"))
-projections_multi <- readRDS(file.path(dg_folder, "all-projections-multi-1.2.rds"))
+saveRDS(projections_multi, file = file.path(dg_folder, "all-projections.rds"))
+projections_multi <- readRDS(file.path(dg_folder, "all-projections.rds"))
 
 tidy_projections <- furrr::future_map(
   projections_multi, covidseir::tidy_seir,
   resample_y_rep = RESAMPLE_ITER
 )
+
 stopifnot(identical(names(tidy_projections), names(observed_data)))
 
 # Add dates:
@@ -32,9 +33,8 @@ tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
 })
 
 # No projection:
-plots <- furrr::future_pmap(list(fits, tidy_projections, observed_data), function(fit, pred, obs) {
+plots <- pmap(list(fits, tidy_projections, observed_data), function(fit, pred, obs) {
   pred <- dplyr::filter(pred, date <= max(obs$date))
-
   .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
   .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
   .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
@@ -46,7 +46,7 @@ plots <- furrr::future_pmap(list(fits, tidy_projections, observed_data), functio
       expand = FALSE,
       xlim = c(
         lubridate::ymd("2020-03-01"),
-        lubridate::ymd("2020-05-21")
+        lubridate::ymd("2020-05-23")
       )
     ) +
     geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
