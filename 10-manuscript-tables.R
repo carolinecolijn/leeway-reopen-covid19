@@ -35,7 +35,6 @@ source("selfIsolationModel/contact-ratios/projection-prep.R")
 details <- tibble::tibble("Detail" = c("Data start",
                                        "Data end",
                                        "$f_2$ prior: Beta(mean, sd)",
-                                       "$R_{\\mathrm{0b}}$ prior: Lognormal(logmean, sd)",
                                        "$1/\\sqrt \\phi$ prior: sd (**check)",
                                        "$f$ prior: ?????",
                                        "$f_2$ ramp start prior mean",
@@ -63,9 +62,6 @@ for(i in 1:length(REGIONS)){
                       paste0(fits[[i]]$f2_prior_beta_shape1,
                              ", ",
                              fits[[i]]$f2_prior_beta_shape2),
-                      paste0(round(fits[[i]]$R0_prior[1], 2),
-                             ", ",
-                             round(fits[[i]]$R0_prior[2], 2)),
                       fits[[i]]$phi_prior,
                       paste0(fits[[i]]$f_prior[1], ", ", fits[[i]]$f_prior[2]),
                       paste(lubridate::month(exp(fits[[i]]$start_decline_prior)[1]
