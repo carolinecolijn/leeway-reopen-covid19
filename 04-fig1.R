@@ -130,13 +130,32 @@ add_label <- function(letter, region, ymax) {
   )
 }
 
+
 violins <- ratios_ordered %>%
   ggplot(aes(x = region_ordered, y = ratio1)) +
   geom_hline(yintercept = 1, col = "grey70", lty = 2) +
+  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
+  coord_flip(ylim = c(0, 1.4), expand = FALSE) +
+  ggsidekick::theme_sleek() +
+  # scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = cols) +
+  # theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
+  theme(axis.title.y = element_blank(), legend.position = "none") +
+  labs(fill = "Region", y = "Threshold ratio")
+ggsave(file.path(fig_folder, "ratio-violins-f1.pdf"), width = 3.5, height = 6, plot = violins)
+violins <- violins + geom_violin(aes(fill = country, y = ratio2),
+  colour = "grey40",
+  lwd = 0.35, alpha = 0.35, lty = "22"
+)
+ggsave(file.path(fig_folder, "ratio-violins-both.pdf"), width = 3.5, height = 6, plot = violins)
+
+violins <- ratios_ordered %>%
+  ggplot(aes(x = region_ordered, y = ratio1)) +
   geom_violin(aes(fill = country, y = ratio2),
     colour = "grey40",
     lwd = 0.35, alpha = 0.35, lty = "22"
   ) +
+  geom_hline(yintercept = 1, col = "grey70", lty = 2) +
   geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
   coord_flip(ylim = c(0, 1.4), expand = FALSE) +
   ggsidekick::theme_sleek() +
@@ -149,9 +168,6 @@ violins <- ratios_ordered %>%
     x = length(unique(ratios_ordered$region)) - 0.2, # coord_flip()!
     y = 0.2, hjust = 1, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
   )
-# violins
-# ggsave(file.path(fig_folder, "ratio-violins.pdf"), width = 3, height = 7)
-# ggsave(file.path(fig_folder, "ratio-violins.png"), width = 3, height = 7)
 
 # Plot: ---------------------------------------------------------------
 
@@ -191,7 +207,7 @@ plots[[12]] <- plots[[12]] + guides(fill = FALSE) +
   legend.title = element_text(size = 7),
   legend.key.size = unit(7, "pt"),
   legend.spacing.y = unit(2, "pt"), legend.background = element_rect(fill = NA, colour = NA)) +
-  labs(colour = "Contact-rate\nincrease", fill = "Contact-rate\nincrease")
+  labs(colour = "Contact rate\nincrease", fill = "Contact rate\nincrease")
 projections <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4) +
   theme(plot.margin = margin(t = 5, r = 6, b = 10, l = -900))
 projections <- projections +

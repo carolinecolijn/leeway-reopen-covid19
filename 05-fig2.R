@@ -102,8 +102,20 @@ g2 <- make_plot(filter(hist_thresh_long, group == "Other")) +
 
 g <- cowplot::plot_grid(g1, g2) +
   # plot.margin = margin(t = 1, r = 1, b = 10, l = 1) +
-  cowplot::draw_text("Contact-rate increase", x = 0.5, y = 0.04, col = "grey30", size = 11)
+  cowplot::draw_text("Contact rate increase", x = 0.5, y = 0.04, col = "grey30", size = 11)
 # g
+
+.x1 <- 0.125
+.x2 <- 0.575
+.y1 <- 0.48
+.y2 <- 0.93
+
+g <- g + cowplot::draw_text(
+  c("A", "B", "C", "D"),
+  x = c(.x1, .x2, .x1, .x2),
+  y = c(.y2, .y2, .y1, .y1),
+  hjust = 0, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
+)
 
 ggsave(file.path(fig_folder, "f-mult-ref-probs.pdf"), width = 5, height = 3.75)
 ggsave(file.path(fig_folder, "f-mult-ref-probs.png"), width = 5, height = 3.75, dpi = 400)

@@ -142,7 +142,8 @@ g <- import_cases_q %>%
   scale_y_log10() +
   coord_flip(ylim = c(7, NA), expand = TRUE) +
   theme(legend.position = c(0.792, 0.185), legend.background = element_rect(fill = "#ffffff90"), legend.key.size = unit(10, "pt"), axis.title.y.left = element_blank(), axis.title.x.bottom = element_text(size = 10), axis.text.x.bottom = element_text(size = 10), axis.text.y.left = element_text(size = 8.5, angle = 0)) +
-  labs(colour = "Contact-rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week")
+  labs(colour = "Contact rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week") +
+  theme(legend.position = c(0.807, 0.19))
 
 for (i in seq(2, 12, 2)) {
   g <- g + annotate("rect", xmin = i - 0.5, xmax = i + if (i < 12) 0.5 else 0.7, ymin = 2, ymax = Inf, col = NA, fill = "grey60", alpha = 0.2)
