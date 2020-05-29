@@ -95,8 +95,6 @@ if ("SWE" %in% names(tidy_projections2)) {
   names(tidy_projections2)[names(tidy_projections2) == "SWE"] <- "SE"
 }
 
-future::plan(future::sequential)
-
 # Violin plots: -------------------------------------------------------
 
 # set.seed(10)
