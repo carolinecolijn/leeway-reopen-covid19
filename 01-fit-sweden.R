@@ -10,7 +10,7 @@ source("selfIsolationModel/contact-ratios/model-prep.R")
 
 #dat <- readr::read_csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
 dat <- readr::read_csv(file.path(this_folder,"data-raw/EURO.csv"))
-dat$dateRep <- lubridate::ymd(dat$dateRep)
+dat$dateRep <- lubridate::dmy(dat$dateRep)
 dat <- dplyr::filter(dat, countriesAndTerritories == "Sweden")
 dat <- dat %>% rename(date = dateRep) %>% arrange(date)
 
@@ -18,6 +18,7 @@ dat <- dat %>% rename(date = dateRep) %>% arrange(date)
 ggplot(dat, aes(date, cases)) +
   geom_point()
 
+dat <- filter(dat, day <= 95)
 # moving average, doesn't really work
 #library(zoo)
 #dat <- dat %>% mutate(ncases = round(rollmean(cases,7,align='right',fill=NA)))
@@ -31,7 +32,7 @@ dat$day <- seq_len(nrow(dat))
 dat$value <- dat$cases
 
 # View(dat)
-ggplot(dat, aes(day, ncases)) +
+ggplot(dat, aes(day, cases)) +
   geom_line(color="blue") + geom_point(aes(day, cases), color="red")
 
 saveRDS(dat, file.path(this_folder, "data-generated/SE-dat.rds"))

@@ -1,6 +1,6 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 RawData <- readr::read_csv(file.path(this_folder,"data-raw/EURO.csv"))
-RawData$date <- lubridate::ymd(RawData$dateRep)
+RawData$date <- lubridate::dmy(RawData$dateRep)
 GermanyRaw <- dplyr::filter(RawData, countriesAndTerritories == "Germany")
 
 dat <- GermanyRaw %>%

@@ -13,7 +13,7 @@ dat$Cases
 
 dat$daily_diffs <- c(NA, diff(dat$Cases))
 dat <- dplyr::filter(dat, Date >= ymd("2020-03-01"))
-dat <- dplyr::filter(dat, Date <= ymd("2020-05-16"))
+dat <- dplyr::filter(dat, Date <= ymd("2020-06-04"))
 dat <- select(dat, date = Date, value = daily_diffs)
 dat$day <- seq_along(dat$date)
 

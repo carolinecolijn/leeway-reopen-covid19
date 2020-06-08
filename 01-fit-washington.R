@@ -8,6 +8,7 @@ d$date <- lubridate::ymd(d$date)
 wa <- filter(d, state %in% "WA") %>%
   select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease) %>%
   filter(date >= ymd("2020-03-01")) %>%
+  filter(date <= ymd("2020-06-03")) %>%
   rename(value = positiveIncrease, tests = totalTestResultsIncrease, hospitalized = hospitalizedIncrease) %>%
   arrange(date) %>%
   mutate(day = seq_len(n()))
@@ -38,14 +39,14 @@ lines(wa$date, wa$tests/10, col = "blue")
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 wa$value
-stopifnot(wa$value[77] == 30)
-wa$value[77] <- NA
+# stopifnot(wa$value[77] == 30)
+# wa$value[77] <- NA
 
-stopifnot(wa$value[78] == 5)
-wa$value[78] <- NA
+# stopifnot(wa$value[78] == 5)
+# wa$value[78] <- NA
 
-stopifnot(wa$value[79] == -157)
-wa$value[79] <- NA
+# stopifnot(wa$value[79] == -157)
+# wa$value[79] <- NA
 
 wa$value
 
@@ -62,10 +63,10 @@ dat[1, "daily_cases_smooth"] <- mean(dat[1:2, ]$value) # Use two-day average
 dat[nrow(dat), "daily_cases_smooth"] <- mean(dat[(nrow(dat) - 1):nrow(dat), ]$value)
 # And for penultimate day due to NA's from dodgy data:
 stopifnot(is.na(dat[nrow(dat)-1, ]$daily_cases_smooth))   # take out next line if this errors
-dat[nrow(dat)-1, "daily_cases_smooth"] <- dat[nrow(dat), "daily_cases_smooth"] # mean of last two
+# dat[nrow(dat)-1, "daily_cases_smooth"] <- dat[nrow(dat), "daily_cases_smooth"] # mean of last two
 # And replace first NA (due to running mean that includes NA) by two-day average:
-stopifnot(is.na(dat[76, ]$daily_cases_smooth))   # take out next line if this errors
-dat[76, "daily_cases_smooth"] <- mean(dat[75:76, ]$daily_cases)  # 77 is NA
+# stopifnot(is.na(dat[76, ]$daily_cases_smooth))   # take out next line if this errors
+# dat[76, "daily_cases_smooth"] <- mean(dat[75:76, ]$daily_cases)  # 77 is NA
 
 dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
 dat$value

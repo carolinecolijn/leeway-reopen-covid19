@@ -27,6 +27,10 @@ dat1 <- dat %>%
 dat$daily_cases <- round(dat1$daily_cases_smooth)
 dat$value <- dat$daily_cases
 
+if (is.na(dat$daily_cases[nrow(dat)])) {
+  dat <- dat[-nrow(dat), ]
+}
+
 saveRDS(dat, file.path(this_folder, "data-generated/BE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
