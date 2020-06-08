@@ -61,11 +61,11 @@ projections_imp <- mutate(projections_imp, region = ifelse(region == "SWE", "SE"
 #   theme_light()
 # ggsave(file.path(fig_folder, "proj-R.png"), width = 12, height = 9)
 #
-# R <- projections_imp %>%
-#   filter(time %in% round_time) %>%
-#   filter(variable %in% c("R", "Rd")) %>%
-#   group_by(f_multi, region, import, .iteration, time) %>%
-#   summarise(cases = value[variable == "R"] + value[variable == "Rd"])
+R <- projections_imp %>%
+  filter(time %in% round_time) %>%
+  filter(variable %in% c("R", "Rd")) %>%
+  group_by(f_multi, region, import, .iteration, time) %>%
+  summarise(cases = value[variable == "R"] + value[variable == "Rd"])
 
 last_obs <- observed_data %>% map_dfr(~tibble(.last_obs = max(.$day)), .id = "region")
 
@@ -141,9 +141,8 @@ g <- import_cases_q %>%
   scale_colour_viridis_d(guide = guide_legend(reverse = TRUE)) +
   scale_y_log10() +
   coord_flip(ylim = c(7, NA), expand = TRUE) +
-  theme(legend.position = c(0.792, 0.185), legend.background = element_rect(fill = "#ffffff90"), legend.key.size = unit(10, "pt"), axis.title.y.left = element_blank(), axis.title.x.bottom = element_text(size = 10), axis.text.x.bottom = element_text(size = 10), axis.text.y.left = element_text(size = 8.5, angle = 0)) +
-  labs(colour = "Contact rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week") +
-  theme(legend.position = c(0.807, 0.19))
+  theme(legend.position = c(0.8, 0.185), legend.background = element_rect(fill = "#ffffff90"), legend.key.size = unit(10, "pt"), axis.title.y.left = element_blank(), axis.title.x.bottom = element_text(size = 10), axis.text.x.bottom = element_text(size = 10), axis.text.y.left = element_text(size = 8.5, angle = 0)) +
+  labs(colour = "Contact rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week")
 
 for (i in seq(2, 12, 2)) {
   g <- g + annotate("rect", xmin = i - 0.5, xmax = i + if (i < 12) 0.5 else 0.7, ymin = 2, ymax = Inf, col = NA, fill = "grey60", alpha = 0.2)
