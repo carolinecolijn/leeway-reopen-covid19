@@ -52,6 +52,7 @@ if (!file.exists(fit_file)) {
     # https://www.destatis.de/EN/Themes/Society-Environment/Population/Current-Population/_node.html
     N_pop = 126e6,
     chains = CHAINS,
+    seed = 2749278,
     iter = ITER
   )
   saveRDS(fit, fit_file)

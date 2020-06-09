@@ -98,6 +98,7 @@ if (!file.exists(fit_file)) {
     end_decline_prior = c(log(get_google_end("New York", dat)), 0.1),     # c(log(.e), 0.2),
     f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
+    seed = 129284,
     N_pop = 19.45e6
   )
   saveRDS(fit, fit_file)
