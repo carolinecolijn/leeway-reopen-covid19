@@ -1,7 +1,7 @@
 source("selfIsolationModel/contact-ratios/model-prep.R")
 source("selfIsolationModel/contact-ratios/projection-prep.R")
 
-WEEKS <- 8
+WEEKS <- 6
 PROJ <- WEEKS * 7
 CASE_PER_WEEK <- 10
 set.seed(12893)
@@ -10,14 +10,18 @@ mults <- seq(1, 2, 0.2) %>% set_names()
 imports <- c(0, CASE_PER_WEEK * WEEKS) %>% set_names()
 round_time <- seq(50, 500) # time increments to save for efficiency
 
+f1_vs_f2 <- readRDS(file.path(dg_folder, "f1_vs_f2.rds"))
+
 future::plan(future::multisession)
 tictoc::tic()
 projections_imp <-
   map_dfr(mults, function(.mult) {
     cat(.mult, "\n")
     furrr::future_map2_dfr(fits, observed_data, function(.fit, .obs) {
+    # purrr::map2_dfr(fits, observed_data, function(.fit, .obs) {
       map_dfr(imports, function(.import) {
         days <- length(.obs$day)
+        use_f1 <- f1_vs_f2$f1_lower[f1_vs_f2$region == .obs$region[1]]
         # be extra careful; first can make a big diff:
         .fit$stan_data$ode_control <- c(1e-09, 1e-08, 1e+08)
         x <- covidseir::project_seir(
@@ -26,7 +30,7 @@ projections_imp <-
           forecast_days = PROJ,
           f_fixed_start = days + 1,
           f_multi = rep(.mult, PROJ),
-          f_multi_seg = 1,
+          f_multi_seg = if (use_f1) 1L else 2L,
           imported_cases = .import,
           imported_window = PROJ,
           return_states = TRUE
@@ -79,7 +83,7 @@ extra_cases <- R %>%
   group_by(day, f_multi, region, .iteration) %>%
   summarise(
     orig_R_Rd = cases[import == "0"],
-    extra_R_Rd = cases[import == names(imports[2])] - cases[import == "0"],
+    extra_R_Rd = cases[import == max(imports)] - cases[import == "0"],
     extra_R_Rd1 = extra_R_Rd / 10,
     extra_R_Rd10 = extra_R_Rd,
     extra_frac_R_Rd1 = extra_R_Rd1 / orig_R_Rd * 100,
@@ -111,7 +115,7 @@ ggsave(file.path(fig_folder, "proj-new-R-Rd.pdf"), width = 12, height = 9)
 import_cases <- projections_imp %>%
   filter(variable %in% c("R", "Rd")) %>%
   group_by(f_multi, region, import, .iteration) %>%
-  filter(time == max(time) - 14) %>%
+  filter(time == max(time) - 0) %>%
   summarise(cases = value[variable == "R"] + value[variable == "Rd"]) %>%
   group_by(f_multi, region, .iteration) %>%
   summarise(extra_R_Rd = cases[import == names(imports[2])] - cases[import == "0"])
@@ -140,7 +144,7 @@ g <- import_cases_q %>%
   geom_linerange(aes(ymin = q0.25, ymax = q0.75), position = position_dodge(width = .width), lwd = 0.9) +
   scale_colour_viridis_d(guide = guide_legend(reverse = TRUE)) +
   scale_y_log10() +
-  coord_flip(ylim = c(7, NA), expand = TRUE) +
+  coord_flip(ylim = c(4, NA), expand = TRUE) +
   theme(legend.position = c(0.8, 0.185), legend.background = element_rect(fill = "#ffffff90"), legend.key.size = unit(10, "pt"), axis.title.y.left = element_blank(), axis.title.x.bottom = element_text(size = 10), axis.text.x.bottom = element_text(size = 10), axis.text.y.left = element_text(size = 8.5, angle = 0)) +
   labs(colour = "Contact rate\nincrease", y = "Extra cases after 6 weeks with\n1 pre-symptomatic infectious\ntraveller per week")
 
