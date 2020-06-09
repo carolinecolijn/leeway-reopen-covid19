@@ -46,7 +46,7 @@ plots <- pmap(list(fits, tidy_projections, observed_data), function(fit, pred, o
       expand = FALSE,
       xlim = c(
         lubridate::ymd("2020-03-01"),
-        lubridate::ymd("2020-05-23")
+        lubridate::ymd("2020-06-07")
       )
     ) +
     geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +

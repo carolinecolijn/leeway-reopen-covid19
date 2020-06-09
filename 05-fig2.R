@@ -26,7 +26,8 @@ hist_thresh <-
     p_above_hist_thresh = mean(above_hist_thresh, na.rm = TRUE),
     p_above_1_1000_N = mean(last_cases > N / 1000),
     p_above_1_5000_N = mean(last_cases > N / 5000),
-    p_above_1_10000_N = mean(last_cases > N / 10000)
+    p_above_1_10000_N = mean(last_cases > N / 10000),
+    p_above_1_20000_N = mean(last_cases > N / 20000)
   ) %>%
   ungroup() %>%
   mutate(f_multi = as.numeric(f_multi)) %>%
@@ -55,10 +56,11 @@ hist_thresh <-
 hist_thresh_long <- hist_thresh %>%
   tidyr::pivot_longer(c(-f_multi, -region, -region_long, -country,
   -region_group)) %>%
-  filter(name %in% c("p_above_1_5000_N", "p_above_hist_thresh")) %>%
+  filter(name %in% c("p_above_1_20000_N", "p_above_hist_thresh")) %>%
   mutate(name = ifelse(name == "p_above_1_1000_N", "P(cases > 1/1,000)", name)) %>%
   mutate(name = ifelse(name == "p_above_1_5000_N", "P(cases > N/5,000)", name)) %>%
   mutate(name = ifelse(name == "p_above_1_10000_N", "P(cases > 1/10,000)", name)) %>%
+  mutate(name = ifelse(name == "p_above_1_20000_N", "P(cases > N/20,000)", name)) %>%
   mutate(name = ifelse(name == "p_above_hist_thresh", "P(cases > historical peak)", name))
 
 hist_thresh_long$group <- ifelse(hist_thresh_long$country %in% c("US", "CAN"), "North America", "Other")
@@ -90,13 +92,19 @@ make_plot <- function(dat) {
     xlab("Contact rate increase")+ylab("Probability")# +
     # theme(strip.text.x = element_blank())
 }
-g1 <- make_plot(filter(hist_thresh_long, group == "North America"))
+
+hist_thresh_long <- hist_thresh_long %>% group_by(region) %>%
+  mutate(max_prob = max(value, na.rm = TRUE)) %>%
+  filter(max_prob > 0)
+# g1 <- make_plot(filter(hist_thresh_long, group == "North America"))
+g1 <- make_plot(filter(hist_thresh_long, region %in% c("CA", "WA", "ON", "SE")))
 g1 <- g1 + theme(strip.text.y = element_blank()) + xlab("") #+
   # theme(axis.title.x = element_blank())
 # g1
 
-g2 <- make_plot(filter(hist_thresh_long, group == "Other")) +
-  coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(-0.005, .35)) +
+# g2 <- make_plot(filter(hist_thresh_long, group == "Other")) +
+g2 <- make_plot(filter(hist_thresh_long, !region %in% c("CA", "WA", "ON", "SE"))) +
+  coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(0, 0.5)) +
   theme(axis.title.y = element_blank()) + xlab("")
 # g2
 
@@ -106,7 +114,7 @@ g <- cowplot::plot_grid(g1, g2) +
 # g
 
 .x1 <- 0.125
-.x2 <- 0.575
+.x2 <- 0.578
 .y1 <- 0.48
 .y2 <- 0.93
 
