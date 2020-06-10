@@ -34,6 +34,13 @@ ratios <- pmap_dfr(list(thresholds, f1, f2),
   ~ tibble(ratio1 = ..2 / ..1, ratio2 = ..3 / ..1),
   .id = "region"
 )
+
+ratios %>%
+  mutate(check1 = ratio1 < 0.8, check2 = ratio2 < 0.8) %>%
+  group_by(region) %>%
+  summarise(p1 = mean(check1), p2 = mean(check2)) %>%
+  arrange(desc(p1))
+
 # ggplot(ratios, aes(ratio2)) +
 #   facet_wrap(~region) +
 #   geom_histogram() +
