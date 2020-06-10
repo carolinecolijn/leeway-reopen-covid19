@@ -36,11 +36,11 @@ details <- tibble::tibble("Detail" = c("Data start",
                                        "Data end",
                                        "Prior mean for $t_1$",
                                        "Prior mean for $t_2$",
-                                       "Prior sd for $t_1$ and $t_2",
+                                       "Prior sd for $t_1$ and $t_2$",
                                        "Prior mean for $e$",
                                        "Delay shape",
                                        "Delay scale",
-                                       "Sampling fraction(s)**",
+                                       "Sampling fraction(s)",
                                        "Log mean for $I_0$ prior",
                                        "$N$: population (millions)"
                                        )
