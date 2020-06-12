@@ -19,13 +19,8 @@ source("analysis/model-prep.R")
 #   geom_vline(xintercept = ymd("2020-03-18")) +
 #   # geom_vline(xintercept = ymd("2020-03-24")) +
 #   geom_vline(xintercept = ymd("2020-03-27"))
-
-latest_data <- "26may20"                # gets used in filename here, and later
                                         # to add 0's after final case
-d <- readr::read_csv(file.path(this_folder,
-                               paste0("data-raw/covid-cases-confirmed-",
-                                      latest_data,
-                                      "-NZ.csv")), skip = 3)
+d <- readr::read_csv(file.path("data-raw", "NZ.csv"), skip = 3)
 d <- rename(d, date = `Date notified of potential case`, overseas = `Overseas travel`) %>%
   select(date, overseas) %>%
   mutate(date = dmy(date)) %>%
