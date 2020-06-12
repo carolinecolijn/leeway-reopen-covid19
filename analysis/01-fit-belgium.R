@@ -5,7 +5,7 @@ source("analysis/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 # data <- readr::read_csv("https://epistat.sciensano.be/Data/COVID19BE_CASES_AGESEX.csv")
-data <- readr::read_csv(file.path(this_folder, "data-raw/BE.csv"))
+data <- readr::read_csv(file.path("data-raw/BE.csv"))
 ggplot(data, aes(DATE, CASES)) +
   geom_bar(stat = "identity")
 
@@ -31,7 +31,7 @@ if (is.na(dat$daily_cases[nrow(dat)])) {
   dat <- dat[-nrow(dat), ]
 }
 
-saveRDS(dat, file.path(this_folder, "data-generated/BE-dat.rds"))
+saveRDS(dat, file.path("data-generated/BE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -39,7 +39,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/BE-dat.rds"))
 # x <- seq(0, 10, length.out = 200)
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- file.path(this_folder, "data-generated/BE-fit.rds")
+fit_file <- file.path("data-generated/BE-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$daily_cases,

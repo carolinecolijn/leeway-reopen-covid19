@@ -18,7 +18,7 @@ source("analysis/model-prep.R")
 # Read and prepare data -----------------------------------------------------
 
 # dat <- readr::read_csv("https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-totals-uk.csv")
-dat <- readr::read_csv(file.path(this_folder, "data-raw/UK.csv"))
+dat <- readr::read_csv(file.path("data-raw/UK.csv"))
 dat <- rename(dat, date = Date)
 dat$cases <- c(dat$ConfirmedCases[1], diff(dat$ConfirmedCases))
 dat$daily_tests <- c(dat$Tests[1], diff(dat$Tests))
@@ -48,7 +48,7 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
 
-saveRDS(dat, file.path(this_folder, "data-generated/UK-dat.rds"))
+saveRDS(dat, file.path("data-generated/UK-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -56,7 +56,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/UK-dat.rds"))
 # x <- seq(0, 10, length.out = 200)
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- file.path(this_folder, "data-generated/UK-fit.rds")
+fit_file <- file.path("data-generated/UK-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

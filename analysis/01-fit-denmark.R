@@ -24,7 +24,7 @@ dat$day <- seq_len(nrow(dat))
 ggplot(dat, aes(date, value)) +
 	geom_point()
 # View(DenmarkData)
-saveRDS(dat, file.path(this_folder, "data-generated/DK-dat.rds"))
+saveRDS(dat, file.path("data-generated/DK-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -32,7 +32,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/DK-dat.rds"))
 # x <- seq(0, 10, length.out = 20)
 # plot(x, dlnorm(x, log(1), 0.5), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- file.path(this_folder, "data-generated/DK-fit.rds")
+fit_file <- file.path("data-generated/DK-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

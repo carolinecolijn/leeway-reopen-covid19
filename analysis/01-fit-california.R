@@ -18,7 +18,7 @@ source("analysis/model-prep.R")
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
+d <- readr::read_csv(file.path("data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 ca <- filter(d, state %in% "CA") %>%
@@ -81,4 +81,4 @@ print(fit)
 #   covidseir::plot_projection(dat) +
 #   scale_y_log10()
 
-saveRDS(dat, file = file.path(this_folder, "data-generated/CA-dat.rds"))
+saveRDS(dat, file = file.path("data-generated/CA-dat.rds"))

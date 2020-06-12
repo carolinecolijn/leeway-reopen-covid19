@@ -22,13 +22,13 @@ dir.create("data-generated/",
   showWarnings = FALSE)
 dir.create("figs/",
   showWarnings = FALSE)
-dir.create("data-raw/",
+dir.create("data-raw",
   showWarnings = FALSE)
 
 # For the threshold function; need to get it into the package:
 source("analysis/functions.R")
 
-this_folder <- "analysis/"
+this_folder <- "analysis"
 
 make_traceplot <- function(fit) {
   rstan::traceplot(fit$fit,

@@ -2,7 +2,7 @@ source("analysis/model-prep.R")
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
+d <- readr::read_csv(file.path("data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 wa <- filter(d, state %in% "WA") %>%
@@ -72,7 +72,7 @@ dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and p
 dat$value
 plot(dat$day, dat$value, type = "o")
 
-fit_file <- file.path(this_folder, "data-generated/WA-fit.rds")
+fit_file <- file.path("data-generated/WA-fit.rds")
 
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
@@ -96,4 +96,4 @@ print(fit)
 #   covidseir::plot_projection(wa) +
 #   scale_y_log10()
 
-saveRDS(dat, file = file.path(this_folder, "data-generated/WA-dat.rds"))
+saveRDS(dat, file = file.path("data-generated/WA-dat.rds"))

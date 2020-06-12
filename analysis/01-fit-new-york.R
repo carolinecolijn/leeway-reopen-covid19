@@ -9,7 +9,7 @@ source("analysis/model-prep.R")
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))
-d <- readr::read_csv(file.path(this_folder, "data-raw/US.csv"))
+d <- readr::read_csv(file.path("data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 new_york <- dplyr::filter(d, state %in% "NY") %>%
@@ -79,7 +79,7 @@ lines(new_york$date, new_york$tests / 10, col = "blue")
 # (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
 
 dat <- new_york
-saveRDS(dat, file.path(this_folder, "data-generated/NY-dat.rds"))
+saveRDS(dat, file.path("data-generated/NY-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -87,7 +87,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/NY-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- file.path(this_folder, "data-generated/NY-fit.rds")
+fit_file <- file.path("data-generated/NY-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

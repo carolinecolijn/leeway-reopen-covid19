@@ -17,7 +17,7 @@ dat <- dplyr::filter(dat, Date <= ymd("2020-06-04"))
 dat <- select(dat, date = Date, value = daily_diffs)
 dat$day <- seq_along(dat$date)
 
-saveRDS(dat, file.path(this_folder, "data-generated/BC-dat.rds"))
+saveRDS(dat, file.path("data-generated/BC-dat.rds"))
 
 # Based on estimation with hospital data in other model:
 samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.21, 11))
@@ -30,7 +30,7 @@ abline(v = ymd("2020-04-21"))
 
 # Fit model -----------------------------------------------------------------
 
-fit_file <- file.path(this_folder, "data-generated/BC-fit.rds")
+fit_file <- file.path("data-generated/BC-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

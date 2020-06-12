@@ -37,9 +37,9 @@ dat$value
 dat <- dat[-nrow(dat), ]
 dat$value
 
-saveRDS(dat, file.path(this_folder, "data-generated/DE-dat.rds"))
+saveRDS(dat, file.path("data-generated/DE-dat.rds"))
 
-fit_file <- file.path(this_folder, "data-generated/DE-fit.rds")
+fit_file <- file.path("data-generated/DE-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

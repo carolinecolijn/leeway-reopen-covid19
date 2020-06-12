@@ -23,7 +23,7 @@ source("analysis/model-prep.R")
 # Read and prepare data -----------------------------------------------------
 
 # dat <- readr::read_csv("https://raw.githubusercontent.com/ishaberry/Covid19Canada/master/timeseries_prov/cases_timeseries_prov.csv")
-dat <- readr::read_csv(file.path(this_folder, "data-raw/CAN.csv"))
+dat <- readr::read_csv(file.path("data-raw/CAN.csv"))
 dat$date <- lubridate::dmy(dat$date_report)
 dat <- dplyr::filter(dat, province == "Ontario")
 # View(dat)
@@ -44,7 +44,7 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
 
-saveRDS(dat, file.path(this_folder, "data-generated/ON-dat.rds"))
+saveRDS(dat, file.path("data-generated/ON-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -52,7 +52,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/ON-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
-fit_file <- file.path(this_folder, "data-generated/ON-fit.rds")
+fit_file <- file.path("data-generated/ON-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,

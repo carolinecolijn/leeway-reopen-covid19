@@ -35,7 +35,7 @@ dat$value <- dat$cases
 ggplot(dat, aes(day, cases)) +
   geom_line(color="blue") + geom_point(aes(day, cases), color="red")
 
-saveRDS(dat, file.path(this_folder, "data-generated/SE-dat.rds"))
+saveRDS(dat, file.path("data-generated/SE-dat.rds"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -45,7 +45,7 @@ saveRDS(dat, file.path(this_folder, "data-generated/SE-dat.rds"))
 #s <- as.numeric(google_dates$start_date - origin, units="days")
 #e <- as.numeric(google_dates$end_date - origin, units="days")
 
-fit_file <- file.path(this_folder, "data-generated/SWE-fit.rds")
+fit_file <- file.path("data-generated/SWE-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$cases, #fit to smoothed cases
@@ -65,7 +65,7 @@ if (!file.exists(fit_file)) {
 
 print(fit)
 make_traceplot(fit)
-saveRDS(fit, file.path(this_folder, "data-generated/SE-fit.rds"))
+saveRDS(fit, file.path("data-generated/SE-fit.rds"))
 
 # Check fit -----------------------------------------------------------------
 # dat$value <- dat$cases #plot using actual cases
@@ -88,7 +88,7 @@ saveRDS(fit, file.path(this_folder, "data-generated/SE-fit.rds"))
 #threshold <- get_thresh(fit, iter = 1:50,
 #  forecast_days = 30, fs = seq(0.1, 0.7, length.out = 5))
 #round(threshold, 2)
-#saveRDS(threshold, file.path(this_folder, "data-generated/SWE-threshold.rds"))
+#saveRDS(threshold, file.path("data-generated/SWE-threshold.rds"))
 
 # Quick plot:
 #hist(fit$post$f_s[,1],

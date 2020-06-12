@@ -112,4 +112,4 @@ nz$value <- nz$not_overseas_cases
 # source(here::here("analysis/plot_projection_w_inset.R"))
 # plot_projection_w_inset(p, nz, obj = fit)
 
-saveRDS(nz, file = file.path(this_folder, "data-generated/NZ-dat.rds"))
+saveRDS(nz, file = file.path("data-generated/NZ-dat.rds"))
