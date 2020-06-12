@@ -32,71 +32,88 @@ source("analysis/projection-prep.R")
 # days_back              1    -none-  numeric
 
 # If order of Details column changes then also need to change order in the loop, this
-details <- tibble::tibble("Detail" = c("Data start",
-                                       "Data end",
-                                       "Prior mean for $t_1$",
-                                       "Prior mean for $t_2$",
-                                       "Prior sd for $t_1$ and $t_2$",
-                                       "Prior mean for $e$",
-                                       "Delay shape",
-                                       "Delay scale",
-                                       "Sampling fraction(s)",
-                                       "Log mean for $I_0$ prior",
-                                       "$N$: population (millions)"
-                                       )
-                          )
+details <- tibble::tibble(
+  "Detail" = c(
+    "Data start",
+    "Data end",
+    "Prior mean for $t_1$",
+    "Prior mean for $t_2$",
+    "Prior sd for $t_1$ and $t_2$",
+    "Prior mean for $e$",
+    "Delay shape",
+    "Delay scale",
+    "Sampling fraction(s)",
+    "Log mean for $I_0$ prior",
+    "$N$: population (millions)"
+  )
+)
 
 # Fill in a column for each REGION
-for(i in 1:length(REGIONS)){
-  testthat::expect_equal(fits[[i]]$stan_data$start_decline_prior[2],
-                                   fits[[i]]$stan_data$end_decline_prior[2])  # need both separately if this fails
+for (i in 1:length(REGIONS)) {
+  testthat::expect_equal(
+    fits[[i]]$stan_data$start_decline_prior[2],
+    fits[[i]]$stan_data$end_decline_prior[2]
+  ) # need both separately if this fails
   details <- details %>%
     dplyr::mutate(!!REGIONS[i] := c(
-                      paste(lubridate::month(min(observed_data[[i]]$date),
-                                             label = TRUE,
-                                             abbr = TRUE),
-                            lubridate::day(min(observed_data[[i]]$date))),
-                      paste(lubridate::month(max(observed_data[[i]]$date),
-                                             label = TRUE,
-                                             abbr = TRUE),
-                            lubridate::day(max(observed_data[[i]]$date))),
-                      paste(lubridate::month(exp(fits[[i]]$start_decline_prior)[1]
-                                             + min(observed_data[[i]]$date),
-                                             label = TRUE,
-                                             abbr = TRUE),
-                            lubridate::day(exp(fits[[i]]$start_decline_prior)[1]
-                                           + min(observed_data[[i]]$date))),
-                      paste(lubridate::month(exp(fits[[i]]$end_decline_prior)[1]
-                                             + min(observed_data[[i]]$date),
-                                             label = TRUE,
-                                             abbr = TRUE),
-                            lubridate::day(exp(fits[[i]]$end_decline_prior)[1]
-                                           + min(observed_data[[i]]$date))),
-                      fits[[i]]$stan_data$end_decline_prior[2],
-                      # paste0(fits[[i]]$e_prior_trans[1],
-                      #       ", ",
-                      #       fits[[i]]$e_prior_trans[2]),  # these are transformed
-                      ifelse(REGIONS[i] == "NZ", 0.9, 0.8),
-                      ifelse(REGIONS[i] == "NZ", 1.53, 1.73),
-                      ifelse(REGIONS[i] == "NZ", 7.83, 9.85),
-                      paste(unique(fits[[i]]$samp_frac), collapse=", "),
-                      round(fits[[i]]$stan_data$i0_prior[1], 2),
-                      sprintf("%.2f", fits[[i]]$pars["N"]/1e6, 2)
-                    ))
+      paste(
+        lubridate::month(min(observed_data[[i]]$date),
+          label = TRUE,
+          abbr = TRUE
+        ),
+        lubridate::day(min(observed_data[[i]]$date))
+      ),
+      paste(
+        lubridate::month(max(observed_data[[i]]$date),
+          label = TRUE,
+          abbr = TRUE
+        ),
+        lubridate::day(max(observed_data[[i]]$date))
+      ),
+      paste(
+        lubridate::month(exp(fits[[i]]$start_decline_prior)[1]
+        + min(observed_data[[i]]$date),
+        label = TRUE,
+        abbr = TRUE
+        ),
+        lubridate::day(exp(fits[[i]]$start_decline_prior)[1]
+        + min(observed_data[[i]]$date))
+      ),
+      paste(
+        lubridate::month(exp(fits[[i]]$end_decline_prior)[1]
+        + min(observed_data[[i]]$date),
+        label = TRUE,
+        abbr = TRUE
+        ),
+        lubridate::day(exp(fits[[i]]$end_decline_prior)[1]
+        + min(observed_data[[i]]$date))
+      ),
+      fits[[i]]$stan_data$end_decline_prior[2],
+      # paste0(fits[[i]]$e_prior_trans[1],
+      #       ", ",
+      #       fits[[i]]$e_prior_trans[2]),  # these are transformed
+      ifelse(REGIONS[i] == "NZ", 0.9, 0.8),
+      ifelse(REGIONS[i] == "NZ", 1.53, 1.73),
+      ifelse(REGIONS[i] == "NZ", 7.83, 9.85),
+      paste(unique(fits[[i]]$samp_frac), collapse = ", "),
+      round(fits[[i]]$stan_data$i0_prior[1], 2),
+      sprintf("%.2f", fits[[i]]$pars["N"] / 1e6, 2)
+    ))
 }
 
 as.data.frame(details)
 
 kableExtra::kable(details,
-                  format = "latex",
-                  booktabs = TRUE,
-                  escape = FALSE) %>%
-  kableExtra::column_spec(1, width="30mm") %>%
-  kableExtra::column_spec(2, width="10mm") %>%
+  format = "latex",
+  booktabs = TRUE,
+  escape = FALSE
+) %>%
+  kableExtra::column_spec(1, width = "30mm") %>%
+  kableExtra::column_spec(2, width = "10mm") %>%
   kableExtra::kable_styling(font_size = 8)
 # Then paste that into .tex on Overleaf
 
 # To check a value:
-for(i in 1:length(REGIONS)){
+for (i in 1:length(REGIONS)) {
   print(fits[[i]]$stan_data$end_decline_prior[2])
 }
