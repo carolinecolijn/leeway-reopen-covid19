@@ -12,8 +12,8 @@ if (packageVersion("covidseir") != "0.0.0.9006") {
 }
 
 wd <- getwd()
-if (!grepl("CoronaModelsBC$", wd)) {
-  stop("Please set your working directory to the `CoronaModelsBC` directory.",
+if (!grepl("leeway-reopen-covid19$", wd)) {
+  stop("Please set your working directory to the `leeway-reopen-covid19` directory.",
     call. = FALSE)
 }
 
