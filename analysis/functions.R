@@ -49,23 +49,6 @@ get_thresh <- function(obj, iter = seq_along(obj$post$R0),
     })
 }
 
-
-# plot_f2_hist <- function(f2, col = RColorBrewer::brewer.pal(3, "Set1")[2],
-#   threshold) {
-#   .x <- seq(0, 1, length.out = 300)
-#   breaks <- seq(min(.x), max(.x), 0.022)
-#   ggplot(tibble(f2 = f2)) +
-#     geom_histogram(
-#       breaks = breaks, aes(x = f2, y = ..density..),
-#       fill = col, alpha = .7, colour = "grey90", lwd = 0.15
-#     ) +
-#     ylab("Density") +
-#     coord_cartesian(xlim = range(.x), expand = FALSE) +
-#     xlab("Fraction of normal contacts") +
-#     scale_x_continuous(breaks = seq(0, 1, 0.2)) +
-#     geom_vline(xintercept = threshold, lty = 2, col = "grey40")
-# }
-
 custom_projection_plot <- function(pred_dat, obs_dat, col = "#377EB8") {
   g <- ggplot(pred_dat, aes_string(x = "date")) +
     geom_ribbon(aes_string(ymin = "y_rep_0.05", ymax = "y_rep_0.95"),
@@ -202,11 +185,8 @@ fan_plot2 <- function(fit, pred, obs) {
     ggsidekick::theme_sleek() +
     theme(axis.title.x.bottom = element_blank(), legend.position = "none") +
     labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
-    # guides(fill = FALSE, colour = FALSE) +
     scale_y_continuous(breaks = scales::breaks_pretty(n = 4))
-  # ggtitle(unique(obs$region))
 }
-
 
 make_f_seg <- function(.dat, .date = "2020-05-01") {
   f_seg <- c(0L, rep(1L, nrow(.dat) - 1))
