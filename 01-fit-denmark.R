@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 #RawData <-  read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")

@@ -58,8 +58,8 @@ get_sd_ramp_dates <- function(dat, region, return_plots = FALSE) {
   }
 }
 
-file1 <- "selfIsolationModel/contact-ratios/data-generated/google-data.rds"
-file2 <- "selfIsolationModel/contact-ratios/data-generated/google-data-select.rds"
+file1 <- "data-generated/google-data.rds"
+file2 <- "data-generated/google-data-select.rds"
 if (!file.exists(file2)) {
   g <- readr::read_csv(
     "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f")
@@ -92,9 +92,9 @@ g_plots <- g %>%
 # names(g_plots) <- mobility_regions
 
 plots <- cowplot::plot_grid(plotlist = g_plots)
-ggsave("selfIsolationModel/contact-ratios/figs/google-plots.pdf", width = 9, height = 5.5)
-ggsave("selfIsolationModel/contact-ratios/figs/google-plots.png", width = 8, height = 7)
+ggsave("figs/google-plots.pdf", width = 9, height = 5.5)
+ggsave("figs/google-plots.png", width = 8, height = 7)
 
 g_dates %>%
   rename(start_date = startDate, end_date = endDate) %>%
-  readr::write_csv("selfIsolationModel/contact-ratios/data-generated/start-end-google.csv")
+  readr::write_csv("data-generated/start-end-google.csv")

@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # https://en.wikipedia.org/wiki/COVID-19_pandemic_in_New_Zealand#Requirements
 # Ardern announced that, effective 01:00 on 16 March, all travellers arriving in or returning to New Zealand from outside of the country must self-isolate for 14 days.

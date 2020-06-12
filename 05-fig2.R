@@ -1,5 +1,5 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
-source("selfIsolationModel/contact-ratios/projection-prep.R")
+source("analysis/model-prep.R")
+source("analysis/projection-prep.R")
 
 projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
 f1_vs_f2 <- readRDS(file.path(dg_folder, "f1_vs_f2.rds"))

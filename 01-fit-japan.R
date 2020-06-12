@@ -1,4 +1,4 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 RawData <- readr::read_csv(file.path(this_folder,"data-raw/OWID.csv"))
 Raw <- dplyr::select(RawData, date, Japan) %>%
   rename(cases = Japan)

@@ -18,17 +18,17 @@ if (!grepl("CoronaModelsBC$", wd)) {
 }
 
 options(mc.cores = parallel::detectCores() / 2) # Stan parallel processing
-dir.create("selfIsolationModel/contact-ratios/data-generated/",
+dir.create("data-generated/",
   showWarnings = FALSE)
-dir.create("selfIsolationModel/contact-ratios/figs/",
+dir.create("figs/",
   showWarnings = FALSE)
-dir.create("selfIsolationModel/contact-ratios/data-raw/",
+dir.create("data-raw/",
   showWarnings = FALSE)
 
 # For the threshold function; need to get it into the package:
-source("selfIsolationModel/contact-ratios/functions.R")
+source("analysis/functions.R")
 
-this_folder <- "selfIsolationModel/contact-ratios/"
+this_folder <- "analysis/"
 
 make_traceplot <- function(fit) {
   rstan::traceplot(fit$fit,
@@ -44,7 +44,7 @@ SAMP_FRAC <- 0.2
 i0_PRIOR <- c(log(1), 1)
 
 goog_dat <- readr::read_csv(
-  "selfIsolationModel/contact-ratios/data-generated/start-end-google.csv")
+  "data-generated/start-end-google.csv")
 get_google_start <- function(.region, .dat) {
   .s <- dplyr::filter(goog_dat, region == .region) %>%
     pull(start_date)

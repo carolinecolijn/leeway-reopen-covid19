@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 

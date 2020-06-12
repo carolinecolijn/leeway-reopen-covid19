@@ -1,5 +1,5 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
-source("selfIsolationModel/contact-ratios/projection-prep.R")
+source("analysis/model-prep.R")
+source("analysis/projection-prep.R")
 
 posterior <- purrr::map2_df(fits, observed_data, function(x, y) {
   post_tidy <- tidybayes::gather_draws(x$fit, c(R0, i0, e, start_decline, end_decline)) %>% ungroup()

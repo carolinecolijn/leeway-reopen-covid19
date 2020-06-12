@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # Notes ---------------------------------------------------------------------
 # https://www.government.se/articles/2020/05/about-covid-19--for-older-people-people-with-health-conditions-and-health-care-and-social-services-staff/

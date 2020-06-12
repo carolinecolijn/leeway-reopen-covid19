@@ -1,5 +1,5 @@
-dg_folder <- "selfIsolationModel/contact-ratios/data-generated/"
-fig_folder <- "selfIsolationModel/contact-ratios/figs/"
+dg_folder <- "data-generated/"
+fig_folder <- "figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
 REGIONS <- c("BC", "BE", "CA", "DE", "NY", "NZ", "ON", "QC", "UK", "WA", "SE", "JP")

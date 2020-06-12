@@ -1,4 +1,4 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # timeline:
 # Jan 26: first case

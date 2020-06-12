@@ -1,13 +1,13 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 library(purrr)
 library(future)
 future::plan(future::multisession)
-source("selfIsolationModel/contact-ratios/globe-funcs.R")
+source("analysis/globe-funcs.R")
 
 source(file.path(this_folder, "01-fit-alberta-twopart.R"))
 
-dg_folder <- "selfIsolationModel/contact-ratios/gm-data-generated/"
-fig_folder <- "selfIsolationModel/contact-ratios/gm-figs/"
+dg_folder <- "analysis/gm-data-generated/"
+fig_folder <- "analysis/gm-figs/"
 dir.create(dg_folder, showWarnings = FALSE)
 dir.create(fig_folder, showWarnings = FALSE)
 REGIONS <- c("AB1", "AB2", "BC", "CA", "MI", "NY", "ON", "QC", "WA")

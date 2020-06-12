@@ -1,4 +1,4 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 # d <- readr::read_csv("https://covidtracking.com/api/v1/states/daily.csv")
 # readr::write_csv(d, here::here("data-generated/us-data.csv"))

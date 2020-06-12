@@ -1,5 +1,5 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
-source("selfIsolationModel/contact-ratios/projection-prep.R")
+source("analysis/model-prep.R")
+source("analysis/projection-prep.R")
 
 WEEKS <- 6
 PROJ <- WEEKS * 7

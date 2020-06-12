@@ -1,5 +1,5 @@
 # Load some packages, functions, and global variables:
-source(here::here("selfIsolationModel/contact-ratios/model-prep.R"))
+source(here::here("analysis/model-prep.R"))
 
 # Notes ---------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ samp_frac_fixed = rep(0.2, nrow(dat)),
 print(fit)
 make_traceplot(fit)
 saveRDS(fit, here(this_folder, "data-generated/AB-fit.rds"))
-saveRDS(fit, "selfIsolationModel/contact-ratios/AB-fit.rds")
+saveRDS(fit, "analysis/AB-fit.rds")
 # Check fit -----------------------------------------------------------------
 
 proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)

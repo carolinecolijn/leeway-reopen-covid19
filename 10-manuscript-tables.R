@@ -1,8 +1,8 @@
 # code to automatically generate tables for parameters etc. for each
 # jurisdiction, for Supplementary Table for how-safe-is-reopening manuscript.
 # Delay shape and scale are not automatic, but taken from the input files
-source("selfIsolationModel/contact-ratios/model-prep.R")
-source("selfIsolationModel/contact-ratios/projection-prep.R")
+source("analysis/model-prep.R")
+source("analysis/projection-prep.R")
 
 # observed_data is a list of tibbles, one for each region (jurisdiction)
 # fits is a list of fits, which are covidseir objects with all the info

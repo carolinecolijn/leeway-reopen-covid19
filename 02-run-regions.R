@@ -1,4 +1,4 @@
-source("selfIsolationModel/contact-ratios/model-prep.R")
+source("analysis/model-prep.R")
 
 source(file.path(this_folder, "01-fit-british-columbia.R"))
 source(file.path(this_folder, "01-fit-ontario.R"))
