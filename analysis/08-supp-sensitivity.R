@@ -80,8 +80,6 @@ g <- ratios %>% tidyr::pivot_longer(-1) %>%
 ggsave(file.path(fig_folder, "sens-ratios.pdf"), width = 6, height = 6, plot = g)
 ggsave(file.path(fig_folder, "sens-ratios.png"), width = 6, height = 6, plot = g)
 
-
-
 g <- ratios %>% tidyr::pivot_longer(-1) %>%
   ggplot(aes(sensitivity, value)) +
   geom_violin() +

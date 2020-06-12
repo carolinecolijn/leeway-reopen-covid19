@@ -49,22 +49,6 @@ projections_imp <- readRDS(file.path(dg_folder, "projections-multi-imp1.rds"))
 projections_imp <- filter(projections_imp, !region %in% c("MI", "FL"))
 projections_imp <- mutate(projections_imp, region = ifelse(region == "SWE", "SE", region))
 
-# R <- projections_imp %>%
-#   filter(variable %in% c("R", "Rd")) %>%
-#   filter(f_multi %in% 1.6) %>%
-#   group_by(f_multi, region, import, .iteration, time) %>%
-#   summarise(R_Rd = value[variable == "R"] + value[variable == "Rd"])
-#
-# g <- ggplot(
-#   R,
-#   aes(time, R_Rd, colour = import, group = paste(.iteration, import))
-# ) +
-#   geom_line(alpha = 0.3) +
-#   facet_wrap(~region, scales = "free_y") +
-#   coord_cartesian(xlim = c(60, 150)) +
-#   theme_light()
-# ggsave(file.path(fig_folder, "proj-R.png"), width = 12, height = 9)
-#
 R <- projections_imp %>%
   filter(time %in% round_time) %>%
   filter(variable %in% c("R", "Rd")) %>%

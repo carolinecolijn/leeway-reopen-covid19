@@ -33,24 +33,6 @@ hist_thresh <-
   mutate(f_multi = as.numeric(f_multi)) %>%
   left_join(country_lookup)
 
-# check: --------------------------------------------------------------
-
-# bc <- projections_fan[["1.8"]][["BC"]]
-# bc_summ <- group_by(bc, .iteration) %>%
-#   summarise(
-#     max_hist = max(y_rep[!forecast]),
-#     last_cases = y_rep[day == max(day)],
-#     above_hist_thresh = last_cases > max_hist
-#   )
-# plots <- ggplot(bc, aes(day, y_rep)) + geom_line() +
-#   facet_wrap(~.iteration) +
-#   geom_hline(aes(yintercept = last_cases, colour = above_hist_thresh), data = bc_summ) +
-#   geom_hline(aes(yintercept = max_hist), data = bc_summ) +
-#   scale_color_manual(values = c("TRUE" = "red", "FALSE" = "blue")) +
-#   ggsidekick::theme_sleek()
-# ggsave(file.path(fig_folder, "bc-hist-thresh-check.pdf"), width = 10, height = 10)
-# ggsave(file.path(fig_folder, "bc-hist-thresh-check.png"), width = 10, height = 10)
-
 # plot probability of various thresholds: -----------------------------
 
 hist_thresh_long <- hist_thresh %>%
@@ -89,27 +71,21 @@ make_plot <- function(dat) {
     scale_color_manual(values = cols) +
     coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(-0.01, 1.01)) +
     scale_x_continuous(breaks = unique(hist_thresh_long$f_multi)) +
-    xlab("Contact rate increase")+ylab("Probability")# +
-    # theme(strip.text.x = element_blank())
+    xlab("Contact rate increase")+ylab("Probability")
 }
 
 hist_thresh_long <- hist_thresh_long %>% group_by(region) %>%
   mutate(max_prob = max(value, na.rm = TRUE)) %>%
   filter(max_prob > 0)
-# g1 <- make_plot(filter(hist_thresh_long, group == "North America"))
 g1 <- make_plot(filter(hist_thresh_long, region %in% c("CA", "WA", "ON", "SE")))
 g1 <- g1 + theme(strip.text.y = element_blank()) + xlab("") #+
-  # theme(axis.title.x = element_blank())
-# g1
 
-# g2 <- make_plot(filter(hist_thresh_long, group == "Other")) +
 g2 <- make_plot(filter(hist_thresh_long, !region %in% c("CA", "WA", "ON", "SE"))) +
   coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(0, 0.5)) +
   theme(axis.title.y = element_blank()) + xlab("")
 # g2
 
 g <- cowplot::plot_grid(g1, g2) +
-  # plot.margin = margin(t = 1, r = 1, b = 10, l = 1) +
   cowplot::draw_text("Contact rate increase", x = 0.5, y = 0.04, col = "grey30", size = 11)
 # g
 

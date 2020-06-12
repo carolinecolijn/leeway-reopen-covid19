@@ -15,21 +15,7 @@ if ("SWE" %in% names(thresholds)) {
 }
 
 f1 <- map(fits, ~ .x$post$f_s[ITER, 1])
-# check:
-# f1 %>%
-#   bind_rows(.id = "ignore") %>%
-#   tidyr::pivot_longer(-1) %>%
-#   ggplot(aes(value)) +
-#   geom_histogram() +
-# facet_wrap(~name)
 f2 <- map(fits, ~ .x$post$f_s[ITER, 2])
-# check:
-# f2 %>%
-#   bind_rows(.id = "ignore") %>%
-#   tidyr::pivot_longer(-1) %>%
-#   ggplot(aes(value)) +
-#   geom_histogram() +
-#   facet_wrap(~name)
 ratios <- pmap_dfr(list(thresholds, f1, f2),
   ~ tibble(ratio1 = ..2 / ..1, ratio2 = ..3 / ..1),
   .id = "region"
@@ -40,12 +26,6 @@ ratios %>%
   group_by(region) %>%
   summarise(p1 = mean(check1), p2 = mean(check2)) %>%
   arrange(desc(p1))
-
-# ggplot(ratios, aes(ratio2)) +
-#   facet_wrap(~region) +
-#   geom_histogram() +
-#   geom_vline(xintercept = 1, lty = 2) +
-#   ggsidekick::theme_sleek()
 
 f1_vs_f2 <- group_by(ratios, region) %>%
   summarise(f1_lower = mean(ratio1) < mean(ratio2))
@@ -166,9 +146,7 @@ violins <- ratios_ordered %>%
   geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
   coord_flip(ylim = c(0, 1.4), expand = FALSE) +
   ggsidekick::theme_sleek() +
-  # scale_fill_brewer(palette = "Set3") +
   scale_fill_manual(values = cols) +
-  # theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
   theme(axis.title.y = element_blank(), legend.position = "none") +
   labs(fill = "Region", y = "Threshold ratio") +
   cowplot::draw_label("A",
