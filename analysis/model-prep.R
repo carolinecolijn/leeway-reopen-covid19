@@ -28,7 +28,7 @@ dir.create("data-raw",
 # For the threshold function; need to get it into the package:
 source("analysis/functions.R")
 
-this_folder <- "analysis"
+this_folder <- "."
 
 make_traceplot <- function(fit) {
   rstan::traceplot(fit$fit,
