@@ -1,16 +1,11 @@
 library(ggplot2)
 library(dplyr)
-# library(reshape2)
 library(segmented)
-# library(cowplot)
-# library(tidyr)
 library(purrr)
 
-# Analyze google mobility data
-# dat is data to be fitted
-# should have transit data & dates
+# Analyze Google mobility data
 
-mobility_regions <- c("British Columbia", "New York", "Sweden", "Germany", "Quebec", "Washington", "New Zealand",  "Ontario", "Belgium", "United Kingdom", "California", "Japan")
+mobility_regions <- c("British Columbia", "New York", "Sweden", "Germany", "Quebec", "Washington", "New Zealand", "Ontario", "Belgium", "United Kingdom", "California", "Japan")
 
 get_sd_ramp_dates <- function(dat, region, return_plots = FALSE) {
   #---Google data------------------#
@@ -39,13 +34,9 @@ get_sd_ramp_dates <- function(dat, region, return_plots = FALSE) {
     geom_line(data = dat.model, aes(x = date, y = change)) +
     # theme_light()
     ggsidekick::theme_sleek() +
-    ylab("Mean transit value") + theme(axis.title.x = element_blank()) +
+    ylab("Mean transit value") +
+    theme(axis.title.x = element_blank()) +
     ylim(-95, 15)
-
-  # ggsave(here::here(paste0("plots/", region, "_plot.pdf")),
-  #     plot = plt,
-  #    width = 8,
-  #    height = 10)
 
   if (return_plots) {
     plt
@@ -62,8 +53,9 @@ file1 <- "data-generated/google-data.rds"
 file2 <- "data-generated/google-data-select.rds"
 if (!file.exists(file2)) {
   g <- readr::read_csv(
-    "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f")
-  saveRDS(g, file =  file)
+    "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f"
+  )
+  saveRDS(g, file = file)
   g$date <- lubridate::ymd(g$date)
 
   g <- dplyr::filter(g, country_region %in% mobility_regions | sub_region_1 %in% mobility_regions)
@@ -89,7 +81,6 @@ g_plots <- g %>%
   group_by(region) %>%
   group_split() %>%
   purrr::map(~ get_sd_ramp_dates(dat = .x, region = unique(.x$region), return_plots = TRUE))
-# names(g_plots) <- mobility_regions
 
 plots <- cowplot::plot_grid(plotlist = g_plots)
 ggsave("figs/google-plots.pdf", width = 9, height = 5.5)
