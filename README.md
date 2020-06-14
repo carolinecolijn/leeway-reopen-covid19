@@ -1,6 +1,6 @@
 ## How much leeway is there to relax COVID-19 control measures?
 
-This repository contains code associated with a manuscript ([preprint here](https://www.medrxiv.org/content/10.1101/2020.06.12.20129833v1)) investigating how much leeway is there to relax COVID-19 control measures across a range of national and regional jurisdictions. The manuscript will be released shortly as a preprint.
+This repository contains code associated with a manuscript ([preprint here](https://www.medrxiv.org/content/10.1101/2020.06.12.20129833v1)) investigating how much leeway is there to relax COVID-19 control measures across a range of national and regional jurisdictions. 
 
 The main statistical model is written in [Stan](https://mc-stan.org/) and fit with the package [covidseir](https://github.com/seananderson/covidseir).
 
