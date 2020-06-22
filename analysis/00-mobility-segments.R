@@ -49,7 +49,6 @@ get_sd_ramp_dates <- function(dat, region, return_plots = FALSE) {
   }
 }
 
-file1 <- "data-generated/google-data.rds"
 file2 <- "data-generated/google-data-select.rds"
 if (!file.exists(file2)) {
   g <- readr::read_csv(
@@ -58,7 +57,7 @@ if (!file.exists(file2)) {
   saveRDS(g, file = file)
   g$date <- lubridate::ymd(g$date)
 
-  g <- dplyr::filter(g, country_region %in% mobility_regions | sub_region_1 %in% mobility_regions)
+  g <- dplyr::filter(g, country_region %in% mobility_regions | sub_region_1 %in% mobility_regions, date <= lubridate::ymd("2020-05-16"))
   g <- g %>% dplyr::mutate(region = ifelse(country_region %in% mobility_regions, country_region, sub_region_1))
   g <- dplyr::select(g, region, transit_stations_percent_change_from_baseline, date)
   saveRDS(g, file = file2)
