@@ -87,7 +87,7 @@ dat <- nz
 
 
 
-fit_file <- paste0(this_folder, "data-generated/NZ-fit.rds")
+fit_file <- file.path(this_folder, "data-generated/NZ-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = nz$not_overseas_cases,
