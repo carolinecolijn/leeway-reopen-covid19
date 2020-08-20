@@ -1,9 +1,6 @@
 # Load some packages, functions, and global variables:
 source("analysis/model-prep.R")
 
-source("fit2.R")
-library(rstan)
-my_model <- stan_model("stiff_test.stan")
 # Notes ---------------------------------------------------------------------
 
 # Physical distancing timeline:
@@ -62,18 +59,16 @@ dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 tictoc::tic()
 fit_file <- file.path("data-generated/ON-fit.rds")
 # if (!file.exists(fit_file)) {
-  fit <- fit2(
+  fit <- fit_seir(
     daily_cases = dat$value,
-    time_increment = 1,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     i0_prior = i0_PRIOR,
     start_decline_prior = c(log(get_google_start("Ontario", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Ontario", dat)), 0.1),
     N_pop = 14.5e6,
     f_seg = make_f_seg(dat, "2020-05-01"),
-    chains = 1,
-    iter = 150,
-    ode_control = c(1e-6, 1e-5, 1e5)
+    chains = CHAINS,
+    iter = ITER
   )
 #   saveRDS(fit, fit_file)
 # } else {
