@@ -5,7 +5,7 @@ source("analysis/model-prep.R")
 
 # Read and prepare data -----------------------------------------------------
 
-dat <- readr::read_csv("nCoVDailyData/CaseCounts/BC Case Counts.csv")
+dat <- readr::read_csv("data-raw/BC.csv")
 names(dat)[names(dat) == "BC"] <- "Cases"
 dat$Date <- lubridate::dmy(dat$Date)
 dat$day <- seq_len(nrow(dat))
@@ -13,11 +13,11 @@ dat$Cases
 
 dat$daily_diffs <- c(NA, diff(dat$Cases))
 dat <- dplyr::filter(dat, Date >= ymd("2020-03-01"))
-dat <- dplyr::filter(dat, Date <= ymd("2020-06-04"))
 dat <- select(dat, date = Date, value = daily_diffs)
 dat$day <- seq_along(dat$date)
 
 saveRDS(dat, file.path("data-generated/BC-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-04"))
 
 # Based on estimation with hospital data in other model:
 samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.21, 11))

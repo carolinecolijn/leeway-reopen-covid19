@@ -54,6 +54,8 @@ qc_dat$cases_adjusted
 diff(qc_dat$date)
 
 dat <- qc_dat
+saveRDS(dat, file.path("data-generated/QC-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -78,7 +80,6 @@ if (!file.exists(fit_file)) {
 print(fit)
 make_traceplot(fit)
 
-saveRDS(dat, file.path("data-generated/QC-dat.rds"))
 
 # Check fit -----------------------------------------------------------------
 

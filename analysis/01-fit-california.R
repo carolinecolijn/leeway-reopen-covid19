@@ -37,26 +37,17 @@ plot(ca$date, ca$value, type = "l")
 # lines(ca$date, ca$hospitalized, col = "red")
 lines(ca$date, ca$tests / 10, col = "blue")
 
+
 (.s <- as.numeric(ymd("2020-03-12") - min(ca$date)))
 (.e <- as.numeric(ymd("2020-03-24") - min(ca$date)))
 
-# g <- readr::read_csv("https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f")
-# g1 <- filter(g, country_region == "United States")
-# g1 <- filter(g, sub_region_1 == "California")
-# ggplot(g1, aes(date, transit_stations_percent_change_from_baseline)) +
-#   geom_point() +
-#   geom_vline(xintercept = ymd("2020-03-12")) +
-#   geom_vline(xintercept = ymd("2020-03-24"))
-
-# (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
-
-ca$value
-# stopifnot(unique(ca$value[38]) == 0)
-# ca$value[38] <- NA
 stopifnot(unique(ca$value[9]) == 0)
 ca$value[9] <- NA
 ca$value
 dat <- ca
+saveRDS(dat, file = file.path("data-generated/CA-dat.rds"))
+
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 fit_file <- paste0(this_folder, "data-generated/CA-fit.rds")
 if (!file.exists(fit_file)) {
@@ -81,4 +72,3 @@ print(fit)
 #   covidseir::plot_projection(dat) +
 #   scale_y_log10()
 
-saveRDS(dat, file = file.path("data-generated/CA-dat.rds"))

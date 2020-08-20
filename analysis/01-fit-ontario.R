@@ -1,6 +1,9 @@
 # Load some packages, functions, and global variables:
 source("analysis/model-prep.R")
 
+source("fit2.R")
+library(rstan)
+my_model <- stan_model("stiff_test.stan")
 # Notes ---------------------------------------------------------------------
 
 # Physical distancing timeline:
@@ -44,7 +47,11 @@ dat$value <- dat$adjust_cases # for plotting function
 ggplot(dat, aes(day, value)) +
   geom_point()
 
+ggplot(dat, aes(date, value)) +
+  geom_point()
+
 saveRDS(dat, file.path("data-generated/ON-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 # Fit model -----------------------------------------------------------------
 
@@ -52,23 +59,27 @@ saveRDS(dat, file.path("data-generated/ON-dat.rds"))
 # x <- seq(0, 40, length.out = 200)
 # plot(x, dlnorm(x, log(12), 0.1), type = "l", xaxs = "i", yaxs = "i")
 
+tictoc::tic()
 fit_file <- file.path("data-generated/ON-fit.rds")
-if (!file.exists(fit_file)) {
-  fit <- covidseir::fit_seir(
+# if (!file.exists(fit_file)) {
+  fit <- fit2(
     daily_cases = dat$value,
+    time_increment = 1,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     i0_prior = i0_PRIOR,
     start_decline_prior = c(log(get_google_start("Ontario", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Ontario", dat)), 0.1),
     N_pop = 14.5e6,
-    f_seg = make_f_seg(dat),
-    chains = CHAINS,
-    iter = ITER
+    f_seg = make_f_seg(dat, "2020-05-01"),
+    chains = 1,
+    iter = 150,
+    ode_control = c(1e-6, 1e-5, 1e5)
   )
-  saveRDS(fit, fit_file)
-} else {
-  fit <- readRDS(fit_file)
-}
+#   saveRDS(fit, fit_file)
+# } else {
+#   fit <- readRDS(fit_file)
+# }
+tictoc::toc()
 
 print(fit)
 make_traceplot(fit)

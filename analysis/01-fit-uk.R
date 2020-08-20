@@ -49,6 +49,7 @@ ggplot(dat, aes(day, value)) +
   geom_point()
 
 saveRDS(dat, file.path("data-generated/UK-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 # Fit model -----------------------------------------------------------------
 

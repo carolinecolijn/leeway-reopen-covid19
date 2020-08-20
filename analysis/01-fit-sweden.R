@@ -36,6 +36,7 @@ ggplot(dat, aes(day, cases)) +
   geom_line(color="blue") + geom_point(aes(day, cases), color="red")
 
 saveRDS(dat, file.path("data-generated/SE-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-08"))
 
 # Fit model -----------------------------------------------------------------
 
