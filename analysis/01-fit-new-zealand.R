@@ -68,6 +68,13 @@ april1 <- as.numeric(ymd("2020-04-01") - min(nz$date))
 samp_frac_fixed <- c(rep(0.4, nrow(nz)))
 
 # samp_frac_fixed <- c(0.3, 0.3, 0.3, 0.3, 0.3, seq(0.3, 0.6, length.out = 12), rep(0.6, 100))
+
+
+nz$day <- seq_len(nrow(nz))
+nz$value <- nz$not_overseas_cases
+saveRDS(nz, file = file.path("data-generated/NZ-dat.rds"))
+nz <- dplyr::filter(nz, date <= ymd("2020-06-07"))
+
 samp_frac_fixed <- samp_frac_fixed[1:nrow(nz)]
 plot(samp_frac_fixed)
 
@@ -76,6 +83,8 @@ plot(samp_frac_fixed)
 dat <- nz
 
 # https://www.stats.govt.nz/topics/population # 4951500
+
+
 
 fit_file <- paste0(this_folder, "data-generated/NZ-fit.rds")
 if (!file.exists(fit_file)) {
@@ -101,8 +110,6 @@ if (!file.exists(fit_file)) {
 
 print(fit)
 
-nz$day <- seq_len(nrow(nz))
-nz$value <- nz$not_overseas_cases
 # nz$value <- nz$all_cases
 # p <- covidseir::project_seir(fit, iter = 1:100, forecast_days = 0)
 #
@@ -112,4 +119,4 @@ nz$value <- nz$not_overseas_cases
 # source(here::here("analysis/plot_projection_w_inset.R"))
 # plot_projection_w_inset(p, nz, obj = fit)
 
-saveRDS(nz, file = file.path("data-generated/NZ-dat.rds"))
+

@@ -15,7 +15,7 @@ dat <- data %>%
 dat$day <- seq_len(nrow(dat))
 names(dat) <- c("date", "daily_cases", "day")
 # Pick a reasonable starting date:
-dat <- dplyr::filter(dat, date >= lubridate::ymd("2020-03-03"))
+dat <- dplyr::filter(dat, date >= ymd("2020-03-03"))
 ggplot(dat, aes(date, daily_cases)) +
   geom_bar(stat = "identity")
 
@@ -32,6 +32,8 @@ if (is.na(dat$daily_cases[nrow(dat)])) {
 }
 
 saveRDS(dat, file.path("data-generated/BE-dat.rds"))
+
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 # Fit model -----------------------------------------------------------------
 

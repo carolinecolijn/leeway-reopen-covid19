@@ -75,11 +75,10 @@ lines(new_york$date, new_york$tests / 10, col = "blue")
 # Tests Jump on day 9 from <100 to >2000
 # and to > 10,000 by the 16th
 
-(samp_frac_fixed <- rep(0.25, nrow(new_york)))
-# (f_seg <- c(rep(0, 11), rep(1, nrow(new_york) - 11)))
-
 dat <- new_york
 saveRDS(dat, file.path("data-generated/NY-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
+
 
 # Fit model -----------------------------------------------------------------
 
@@ -91,7 +90,7 @@ fit_file <- file.path("data-generated/NY-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)), # samp_frac_fixed,
+    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     iter = ITER,
     chains = CHAINS,
     start_decline_prior = c(log(get_google_start("New York", dat)), 0.1), # c(log(.s), 0.2),

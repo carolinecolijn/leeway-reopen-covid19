@@ -72,6 +72,9 @@ dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and p
 dat$value
 plot(dat$day, dat$value, type = "o")
 
+saveRDS(dat, file = file.path("data-generated/WA-dat.rds"))
+dat <- dplyr::filter(dat, date <= ymd("2020-06-03"))
+
 fit_file <- file.path("data-generated/WA-fit.rds")
 
 if (!file.exists(fit_file)) {
@@ -96,4 +99,3 @@ print(fit)
 #   covidseir::plot_projection(wa) +
 #   scale_y_log10()
 
-saveRDS(dat, file = file.path("data-generated/WA-dat.rds"))
