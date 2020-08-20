@@ -49,7 +49,7 @@ saveRDS(dat, file = file.path("data-generated/CA-dat.rds"))
 
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
-fit_file <- paste0(this_folder, "data-generated/CA-fit.rds")
+fit_file <- file.path(this_folder, "data-generated/CA-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
