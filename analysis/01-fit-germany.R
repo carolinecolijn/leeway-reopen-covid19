@@ -33,13 +33,15 @@ ggplot(dat, aes(date, value)) +
   geom_point()
 dat$value
 
-# remove last NA:
-dat <- dat[-nrow(dat), ]
-dat$value
+ggplot(dat, aes(date, value)) +
+  geom_point()
 
 saveRDS(dat, file.path("data-generated/DE-dat.rds"))
 
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
+
+ggplot(dat, aes(date, value)) +
+  geom_point()
 
 fit_file <- file.path("data-generated/DE-fit.rds")
 if (!file.exists(fit_file)) {
@@ -53,7 +55,8 @@ if (!file.exists(fit_file)) {
     N_pop = 83e6,
     # https://www.destatis.de/EN/Themes/Society-Environment/Population/Current-Population/_node.html
     chains = CHAINS,
-    iter = ITER
+    iter = ITER,
+    control = list(adapt_delta = 0.95)
   )
   saveRDS(fit, fit_file)
 } else {
