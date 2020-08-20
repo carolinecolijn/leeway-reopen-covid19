@@ -47,8 +47,9 @@ nz <- filter(d, date >= ymd("2020-03-15"))
 nz$all_cases
 diff(nz$date)
 
+latest_data <- nz$date[length(nz$date)]
 # latest_data here ensures we get 0's since last reported case
-nz <- left_join(tibble(date = seq(min(nz$date), dmy(latest_data), by = "1 day")), nz)
+nz <- left_join(tibble(date = seq(min(nz$date), latest_data, by = "1 day")), nz)
 nz$all_cases
 nz$not_overseas_cases
 # nz$not_overseas_cases[is.na(nz$not_overseas_cases)] <- 0
