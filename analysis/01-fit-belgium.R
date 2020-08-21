@@ -16,6 +16,8 @@ dat$day <- seq_len(nrow(dat))
 names(dat) <- c("date", "daily_cases", "day")
 # Pick a reasonable starting date:
 dat <- dplyr::filter(dat, date >= ymd("2020-03-03"))
+dat$day <- seq_len(nrow(dat))
+
 ggplot(dat, aes(date, daily_cases)) +
   geom_bar(stat = "identity")
 
@@ -35,6 +37,9 @@ saveRDS(dat, file.path("data-generated/BE-dat.rds"))
 
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
+ggplot(dat, aes(date, daily_cases)) +
+  geom_bar(stat = "identity")
+
 # Fit model -----------------------------------------------------------------
 
 # Example of visualizing a prior:
@@ -52,7 +57,7 @@ if (!file.exists(fit_file)) {
     end_decline_prior = c(log(get_google_end("Belgium", dat)), 0.1),
                                             # = log(18), original was log(17)
     f_seg = make_f_seg(dat),
-    N_pop = 11476279,
+    N_pop = 11.46e6,
     chains = CHAINS,
     iter = ITER
   )
@@ -65,8 +70,6 @@ print(fit)
 make_traceplot(fit)
 
 # # Check fit -----------------------------------------------------------------
-# dat$value <- dat$daily_cases
-#
 # proj <- covidseir::project_seir(fit, iter = 1:50, forecast_days = 30)
 # proj_tidy <- covidseir::tidy_seir(proj)
 #
