@@ -11,7 +11,7 @@ get_sd_ramp_dates <- function(dat, region, return_plots = FALSE) {
   #---Google data------------------#
   dat <- dat %>%
     group_by(date) %>%
-    summarise(transitMean = mean(transit_stations_percent_change_from_baseline, na.rm = TRUE))
+    summarise(transitMean = mean(transit_stations_percent_change_from_baseline, na.rm = TRUE), .groups = "drop_last")
   dat$day <- seq(1, nrow(dat))
   #--- Segmented Linear Regression----#
   dat.lm <- lm(transitMean ~ day, dat)
