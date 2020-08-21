@@ -58,7 +58,7 @@ dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 tictoc::tic()
 fit_file <- file.path("data-generated/ON-fit.rds")
-# if (!file.exists(fit_file)) {
+if (!file.exists(fit_file)) {
   fit <- fit_seir(
     daily_cases = dat$value,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
@@ -70,10 +70,10 @@ fit_file <- file.path("data-generated/ON-fit.rds")
     chains = CHAINS,
     iter = ITER
   )
-#   saveRDS(fit, fit_file)
-# } else {
-#   fit <- readRDS(fit_file)
-# }
+  saveRDS(fit, fit_file)
+} else {
+  fit <- readRDS(fit_file)
+}
 tictoc::toc()
 
 print(fit)
