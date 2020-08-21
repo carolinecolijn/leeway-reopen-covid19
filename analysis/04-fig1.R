@@ -4,9 +4,10 @@ future::plan(future::multisession)
 
 # Critical contact: ---------------------------
 
-ITER <- 1:400 # downsample for speed
+set.seed(28492)
+ITER <- sample(seq_len(1500), 400) # downsample for speed
 thresholds <- map(fits, covidseir::get_threshold, iter = ITER) # subroutine is parallel
-future::plan(future::sequential)
+
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
 
@@ -31,14 +32,15 @@ saveRDS(f1_vs_f2, file = file.path(dg_folder, "f1_vs_f2.rds"))
 
 PROJ <- 8 * 7
 set.seed(12893)
-ITER_PROJ <- sample(seq_len(N_ITER), 100)
+ITER_PROJ <- sample(seq_len(N_ITER), 200)
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
 projections_fan <- map(mults, function(.mult) {
   cat(.mult, "\n")
-  out <- furrr::future_map2(fits, observed_data, function(.fit, .obs) {
+  # out <- furrr::future_map2(fits, observed_data, function(.fit, .obs) {
+  out <- purrr::map2(fits, observed_data, function(.fit, .obs) {
     use_f1 <- f1_vs_f2$f1_lower[f1_vs_f2$region == .obs$region[1]]
-    days <- length(.obs$day)
+    days <- nrow(.fit$daily_cases)
     covidseir::project_seir(
       .fit,
       iter = ITER_PROJ,
@@ -53,13 +55,11 @@ projections_fan <- map(mults, function(.mult) {
 saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
 projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
 
-future::plan(future::multisession)
 tidy_projections <- furrr::future_map(projections_fan, function(x) {
   map(x, function(y) {
     covidseir::tidy_seir(y, resample_y_rep = RESAMPLE_ITER)
   })
 })
-future::plan(future::sequential)
 tidy_projections1 <- map(tidy_projections, bind_rows, .id = "region")
 tidy_projections1 <- tidy_projections1 %>% bind_rows(.id = "f_multi")
 tidy_projections1 <- split(tidy_projections1, tidy_projections1$region)
@@ -208,3 +208,5 @@ g <- cowplot::plot_grid(g1, projections, rel_widths = c(1, 4), align = "hv", axi
 
 ggsave(file.path(fig_folder, "proj-fan.pdf"), width = 8.2, height = 4.3, plot = g)
 ggsave(file.path(fig_folder, "proj-fan.png"), width = 8.2, height = 4.3, plot = g, dpi = 500)
+
+future::plan(future::sequential)
