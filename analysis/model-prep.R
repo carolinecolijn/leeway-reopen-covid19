@@ -5,8 +5,8 @@ library("covidseir")
 library("purrr")
 library("future")
 
-if (packageVersion("covidseir") < "0.0.0.9007") {
-  stop("packageVersion('covidseir') < '0.0.0.9007'.\n",
+if (packageVersion("covidseir") < "0.0.0.9008") {
+  stop("packageVersion('covidseir') < '0.0.0.9008'.\n",
   "Please install the latest version of the model:\n",
   "devtools::install_github('seananderson/covidseir')", call. = FALSE)
 }
