@@ -4,15 +4,11 @@ future::plan(future::multisession)
 
 # Critical contact: ---------------------------
 
-ITER <- 1:200 # downsample for speed
-thresholds <- map(fits, get_thresh, iter = ITER) # subroutine is parallel
+ITER <- 1:400 # downsample for speed
+thresholds <- map(fits, covidseir::get_threshold, iter = ITER) # subroutine is parallel
 future::plan(future::sequential)
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
-
-if ("SWE" %in% names(thresholds)) {
-  names(thresholds)[names(thresholds) == "SWE"] <- "SE"
-}
 
 f1 <- map(fits, ~ .x$post$f_s[ITER, 1])
 f2 <- map(fits, ~ .x$post$f_s[ITER, 2])
