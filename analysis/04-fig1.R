@@ -5,7 +5,7 @@ future::plan(future::multisession)
 # Critical contact: ---------------------------
 
 set.seed(28492)
-ITER <- sample(seq_len(1500), 400) # downsample for speed
+ITER <- sample(seq_len(N_ITER), 400) # downsample for speed
 thresholds <- map(fits, covidseir::get_threshold, iter = ITER) # subroutine is parallel
 
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -30,15 +30,15 @@ saveRDS(f1_vs_f2, file = file.path(dg_folder, "f1_vs_f2.rds"))
 
 # Projections -----------------------------
 
-PROJ <- 8 * 7
+PROJ <- 11 * 7
 set.seed(12893)
-ITER_PROJ <- sample(seq_len(N_ITER), 200)
+ITER_PROJ <- sample(seq_len(N_ITER), 100)
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
 projections_fan <- map(mults, function(.mult) {
   cat(.mult, "\n")
-  # out <- furrr::future_map2(fits, observed_data, function(.fit, .obs) {
   out <- purrr::map2(fits, observed_data, function(.fit, .obs) {
+    cat(.obs$region[1], "\n")
     use_f1 <- f1_vs_f2$f1_lower[f1_vs_f2$region == .obs$region[1]]
     days <- nrow(.fit$daily_cases)
     covidseir::project_seir(
@@ -50,6 +50,7 @@ projections_fan <- map(mults, function(.mult) {
       f_multi_seg = if (use_f1) 1L else 2L
     )
   })
+  cat("--------------------------", "\n")
   map(out, mutate, f_multi = .mult)
 }) %>% set_names(as.character(mults))
 saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
@@ -73,10 +74,6 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
   )
   left_join(pred, lu, by = "day")
 })
-
-if ("SWE" %in% names(tidy_projections2)) {
-  names(tidy_projections2)[names(tidy_projections2) == "SWE"] <- "SE"
-}
 
 # Violin plots: -------------------------------------------------------
 
@@ -112,7 +109,6 @@ add_label <- function(letter, region, ymax) {
     )
   )
 }
-
 
 violins <- ratios_ordered %>%
   ggplot(aes(x = region_ordered, y = ratio1)) +
