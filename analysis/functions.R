@@ -26,69 +26,6 @@ custom_projection_plot <- function(pred_dat, obs_dat, col = "#377EB8") {
   g
 }
 
-make_hist <- function(df) {
-  region <- unique(df$region)
-  ggplot(df) +
-    ylab("Density") +
-    geom_histogram(
-      breaks = breaks, aes(x = ratio, y = ..density..),
-      fill = "#377EB8", alpha = .75, colour = "grey90", lwd = 0.3
-    ) +
-    geom_vline(xintercept = 1, lty = 2, col = "grey60") +
-    coord_cartesian(xlim = range(breaks), expand = FALSE) +
-    xlab("Contact ratio") +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.y.left = element_blank()) +
-    theme(axis.text.y.left = element_blank()) +
-    theme(axis.ticks.y.left = element_blank()) +
-    theme(plot.margin = margin(t = 11 / 2, r = 13, b = 11 / 2, l = 13)) +
-    ggtitle(region)
-}
-
-fan_plot <- function(fit, pred, obs) {
-
-  .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
-  .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
-  .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
-  .e2 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.95) - 1
-
-  ggplot(pred, aes(x = date)) +
-    geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
-    annotate("rect", xmin = .s1, xmax = .s2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5) +
-    annotate("rect", xmin = .e1, xmax = .e2, ymin = 0, ymax = Inf, fill = "grey50", alpha = 0.5) +
-    geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
-    geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
-    scale_colour_viridis_d(end = 0.95) +
-    scale_fill_viridis_d(end = 0.95) +
-    ylab("Reported cases") +
-    theme(axis.title.x = element_blank()) +
-    geom_line(
-      data = obs,
-      col = "black", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      lwd = 0.35, alpha = 0.9
-    ) +
-    geom_point(
-      data = obs,
-      col = "grey30", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      pch = 21, fill = "grey95", size = 1.25
-    ) +
-    annotate("rect",
-      xmin = max(obs$date), xmax = ymd("2020-07-15"), fill = "grey40", alpha = 0.1,
-      ymin = 0, ymax = Inf,
-    ) +
-    coord_cartesian(
-      expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
-      xlim = c(ymd("2020-03-01"), ymd("2020-07-15"))
-    ) +
-    ggsidekick::theme_sleek() +
-    theme(axis.title.x.bottom = element_blank()) +
-    labs(colour = "Re-opening\nfraction", fill = "Re-opening\nfraction") +
-    guides(fill = FALSE, colour = FALSE) +
-    ggtitle(unique(obs$region))
-}
-
 fan_plot2 <- function(fit, pred, obs) {
 
   .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
@@ -96,40 +33,47 @@ fan_plot2 <- function(fit, pred, obs) {
   .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
   .e2 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.95) - 1
 
-  pred_hist <- filter(pred, day <= max(obs$day))
-  pred <- filter(pred, day >= max(obs$day))
+  pred_hist <- filter(pred, day <= max(fit$days))
+  pred <- filter(pred, day >= max(fit$days))
+
+  multiplier <- 2
+  # if (obs$region[[1]] %in% c("JP")) {
+  #   multiplier <- 2
+  # }
+  ymax <- max(obs$value, na.rm = TRUE) * multiplier
 
   ggplot(pred, aes(x = date)) +
     geom_vline(xintercept = ymd("2020-05-01"), lty = 2, col = "grey50", alpha = 0.6) +
     annotate("rect", xmin = .s1, xmax = .s2, ymin = 0, ymax = Inf, fill = "grey60", alpha = 0.55) +
     annotate("rect", xmin = .e1, xmax = .e2, ymin = 0, ymax = Inf, fill = "grey60", alpha = 0.55) +
+    annotate("rect",
+      xmin = max(pred_hist$date),
+      xmax = ymd("2020-08-28"), fill = "grey40", alpha = 0.1,
+      ymin = 0, ymax = Inf,
+    ) +
     geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95), data = pred_hist, alpha = 0.40, fill = "grey30") +
     geom_ribbon(aes(ymin = y_rep_0.05, ymax = y_rep_0.95, fill = f_multi), alpha = 0.25) +
     scale_colour_viridis_d(end = 0.95) +
     scale_fill_viridis_d(end = 0.95) +
     geom_line(aes(y = y_rep_0.50, col = f_multi), lwd = 0.9) +
-    geom_line(aes(y = y_rep_0.50), data = pred_hist, lwd = 0.9, colour = "grey40") +
+    geom_line(aes(y = y_rep_0.50), data = pred_hist, lwd = 0.9, colour = "grey52") +
     ylab("Reported cases") +
     theme(axis.title.x = element_blank()) +
     geom_line(
       data = obs,
       col = "black", inherit.aes = FALSE,
       aes_string(x = "date", y = "value"),
-      lwd = 0.35, alpha = 0.9
+      lwd = 0.35, alpha = 1.0
     ) +
-    geom_point(
-      data = obs,
-      col = "grey30", inherit.aes = FALSE,
-      aes_string(x = "date", y = "value"),
-      pch = 21, fill = "grey95", size = 1.15
-    ) +
-    annotate("rect",
-      xmin = max(obs$date), xmax = ymd("2020-07-15"), fill = "grey40", alpha = 0.1,
-      ymin = 0, ymax = Inf,
-    ) +
+    # geom_point(
+    #   data = obs,
+    #   col = "grey30", inherit.aes = FALSE,
+    #   aes_string(x = "date", y = "value"),
+    #   pch = 21, fill = "grey95", size = 1.15
+    # ) +
     coord_cartesian(
-      expand = FALSE, ylim = c(0, max(obs$value, na.rm = TRUE) * 2),
-      xlim = c(ymd("2020-03-01"), ymd("2020-07-12"))
+      expand = FALSE, ylim = c(0, ymax),
+      xlim = c(ymd("2020-03-01"), ymd("2020-08-18"))
     ) +
     ggsidekick::theme_sleek() +
     theme(axis.title.x.bottom = element_blank(), legend.position = "none") +

@@ -96,16 +96,16 @@ add_label <- function(letter, region, ymax) {
   regional_label <- country_lookup$region_long[country_lookup$region == region]
   list(
     annotate("rect",
-      xmin = ymd("2020-03-01"), xmax = ymd("2020-03-05") + 62,
+      xmin = ymd("2020-03-01"), xmax = ymd("2020-03-05") + 70,
       ymin = ymax * 0.77, ymax = ymax, fill = "white", alpha = 1
     ),
     cowplot::draw_label(letter,
       x = ymd("2020-03-05"),
-      y = ymax * .83, hjust = 0, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
+      y = ymax * .81, hjust = 0, vjust = 0, fontface = "bold", size = 12, colour = "grey10"
     ),
     cowplot::draw_label(regional_label,
-      x = ymd("2020-03-05") + 13,
-      y = ymax * .83, hjust = 0, vjust = 0, fontface = "plain", size = 10, colour = "grey30"
+      x = ymd("2020-03-05") + 16,
+      y = ymax * .81, hjust = 0, vjust = 0, fontface = "plain", size = 10, colour = "grey30"
     )
   )
 }
@@ -179,11 +179,11 @@ for (i in c(2, 3, 5, 6, 8, 9, 11, 12)) {
 }
 plots[[12]] <- plots[[12]] + guides(fill = FALSE) +
   guides(colour = guide_legend(override.aes = list(alpha = 1, lwd = 0.8), reverse = TRUE)) + theme(
-  legend.position = c(0.81, 0.5),
+  legend.position = c(0.74, 0.5),
   legend.text = element_text(size = 7),
   legend.title = element_text(size = 7),
   legend.key.size = unit(7, "pt"),
-  legend.spacing.y = unit(2, "pt"), legend.background = element_rect(fill = NA, colour = NA)) +
+  legend.spacing.y = unit(1, "pt"), legend.background = element_rect(fill = NA, colour = NA)) +
   labs(colour = "Contact rate\nincrease", fill = "Contact rate\nincrease")
 projections <- cowplot::plot_grid(plotlist = plots, align = "hv", nrow = 4) +
   theme(plot.margin = margin(t = 5, r = 6, b = 10, l = -900))
