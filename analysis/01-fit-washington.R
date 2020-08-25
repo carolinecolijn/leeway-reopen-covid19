@@ -8,7 +8,7 @@ d$date <- lubridate::ymd(d$date)
 wa <- filter(d, state %in% "WA") %>%
   select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease) %>%
   filter(date >= ymd("2020-03-01")) %>%
-  filter(date <= ymd("2020-06-03")) %>%
+  # filter(date <= ymd("2020-06-03")) %>%
   rename(value = positiveIncrease, tests = totalTestResultsIncrease, hospitalized = hospitalizedIncrease) %>%
   arrange(date) %>%
   mutate(day = seq_len(n()))
