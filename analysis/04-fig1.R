@@ -56,6 +56,10 @@ projections_fan <- map(mults, function(.mult) {
 saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
 projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
 
+# for (i in mults) {
+#   projections_fan[[i]]$WA <- .projections_fan[[i]]$WA
+# }
+
 tidy_projections <- furrr::future_map(projections_fan, function(x) {
   map(x, function(y) {
     covidseir::tidy_seir(y, resample_y_rep = RESAMPLE_ITER)
@@ -151,8 +155,24 @@ violins <- ratios_ordered %>%
 violin_order <- rev(levels(ratios_ordered$region_ordered))
 stopifnot(identical(names(tidy_projections2), names(observed_data)))
 
+y_axis_mults <- purrr::map(violin_order, function(x) 2)
+names(y_axis_mults) <- violin_order
+y_axis_mults$JP <- 1.3
+y_axis_mults$CA <- 1.2
+y_axis_mults$ON <- 1.5
+y_axis_mults$SE <- 1.3
+y_axis_mults$QC <- 1.7
+y_axis_mults$WA <- 1.1
+y_axis_mults$BC <- 1.6
+y_axis_mults$BE <- 1.65
+y_axis_mults$DE <- 1.8
+y_axis_mults$NZ <- 1.7
+y_axis_mults$UK <- 1.6
+y_axis_mults$NY <- 2.1
+
 plots <- pmap(
-  list(fits[violin_order], tidy_projections2[violin_order], observed_data[violin_order]),
+  list(fits[violin_order], tidy_projections2[violin_order], observed_data[violin_order],
+    y_axis_mults),
   fan_plot2
 )
 for (i in 1:12) {
@@ -164,7 +184,7 @@ for (i in 1:12) {
     theme(axis.text.x.bottom = element_text(size = rel(0.9))) +
     add_label(
       letter = LETTERS[i + 1], violin_order[i],
-      ymax = max(observed_data[violin_order][[i]]$value, na.rm = TRUE) * 2
+      ymax = max(observed_data[violin_order][[i]]$value, na.rm = TRUE) * y_axis_mults[[i]]
     )
 }
 # non-bottom row:
@@ -179,7 +199,7 @@ for (i in c(2, 3, 5, 6, 8, 9, 11, 12)) {
 }
 plots[[12]] <- plots[[12]] + guides(fill = FALSE) +
   guides(colour = guide_legend(override.aes = list(alpha = 1, lwd = 0.8), reverse = TRUE)) + theme(
-  legend.position = c(0.74, 0.5),
+  legend.position = c(0.75, 0.5),
   legend.text = element_text(size = 7),
   legend.title = element_text(size = 7),
   legend.key.size = unit(7, "pt"),

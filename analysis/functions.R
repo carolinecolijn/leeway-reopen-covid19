@@ -26,7 +26,7 @@ custom_projection_plot <- function(pred_dat, obs_dat, col = "#377EB8") {
   g
 }
 
-fan_plot2 <- function(fit, pred, obs) {
+fan_plot2 <- function(fit, pred, obs, multiplier) {
 
   .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
   .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
@@ -36,9 +36,9 @@ fan_plot2 <- function(fit, pred, obs) {
   pred_hist <- filter(pred, day <= max(fit$days))
   pred <- filter(pred, day >= max(fit$days))
 
-  multiplier <- 2
+  # multiplier <- mult
   # if (obs$region[[1]] %in% c("JP")) {
-  #   multiplier <- 2
+  #   multiplier <- 1.5
   # }
   ymax <- max(obs$value, na.rm = TRUE) * multiplier
 
