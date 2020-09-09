@@ -14,8 +14,9 @@ hist_thresh <-
       group_by(x2, .iteration) %>%
         summarise(
           max_hist = max(y_rep[!forecast]),
-          last_cases = y_rep[day == max(day) - 14],
-          above_hist_thresh = last_cases > max_hist
+          last_cases = y_rep[day == max(day) - 7 * 5], # full set is 11 weeks
+          above_hist_thresh = last_cases > max_hist,
+          .groups = "drop_last"
         )
     }, .id = "region")
   }, .id = "f_multi") %>%
@@ -27,7 +28,8 @@ hist_thresh <-
     p_above_1_1000_N = mean(last_cases > N / 1000),
     p_above_1_5000_N = mean(last_cases > N / 5000),
     p_above_1_10000_N = mean(last_cases > N / 10000),
-    p_above_1_20000_N = mean(last_cases > N / 20000)
+    p_above_1_20000_N = mean(last_cases > N / 20000),
+    .groups = "drop_last"
   ) %>%
   ungroup() %>%
   mutate(f_multi = as.numeric(f_multi)) %>%
@@ -81,7 +83,7 @@ g1 <- make_plot(filter(hist_thresh_long, region %in% c("CA", "WA", "ON", "SE")))
 g1 <- g1 + theme(strip.text.y = element_blank()) + xlab("") #+
 
 g2 <- make_plot(filter(hist_thresh_long, !region %in% c("CA", "WA", "ON", "SE"))) +
-  coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(0, 0.5)) +
+  coord_cartesian(expand = FALSE, xlim = c(1, 2.25), ylim = c(0, 0.6)) +
   theme(axis.title.y = element_blank()) + xlab("")
 # g2
 
@@ -90,7 +92,7 @@ g <- cowplot::plot_grid(g1, g2) +
 # g
 
 .x1 <- 0.125
-.x2 <- 0.578
+.x2 <- 0.578 #+ 0.01
 .y1 <- 0.48
 .y2 <- 0.93
 
