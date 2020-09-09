@@ -34,7 +34,9 @@ tidy_projections <- map2(tidy_projections, observed_data, function(pred, obs) {
 
 # No projection:
 plots <- pmap(list(fits, tidy_projections, observed_data), function(fit, pred, obs) {
-  pred <- dplyr::filter(pred, date <= max(obs$date))
+
+  # pred <- dplyr::filter(pred, day <= max(obs$date))
+  obs <- dplyr::filter(obs, day <= max(pred$day))
   .s1 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.05) - 1
   .s2 <- min(obs$date) + quantile(fit$post$start_decline, probs = 0.95) - 1
   .e1 <- min(obs$date) + quantile(fit$post$end_decline, probs = 0.05) - 1
