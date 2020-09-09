@@ -4,6 +4,30 @@
 source("analysis/model-prep.R")
 source("analysis/projection-prep.R")
 
+# posterior table for paper: ------------------
+get_stats <- function(x) {
+  s <- rstan::summary(x$fit)
+  s <- s$summary %>% as.data.frame()
+  s$Parameter <- row.names(s)
+  s <- s %>% select(Parameter, mean, `2.5%`, `50%`, `97.5%`, n_eff, Rhat)
+  s <- filter(s, Parameter %in% c("R0", "i0", "e", "f_s[1]", "f_s[2]", "phi[1]", "start_decline", "end_decline"))
+  row.names(s) <- NULL
+  s$Parameter <- gsub("phi\\[1\\]", "$\\\\phi$", s$Parameter)
+  s$Parameter <- gsub("f_s\\[1\\]", "$f_1$", s$Parameter)
+  s$Parameter <- gsub("f_s\\[2\\]", "$f_2$", s$Parameter)
+  s$Parameter <- gsub("i0", "$I_0$", s$Parameter)
+  s$Parameter <- gsub("e", "$e$", s$Parameter)
+  s$Parameter <- gsub("start_decline", "$t_1$", s$Parameter)
+  s$Parameter <- gsub("end_decline", "$t_2$", s$Parameter)
+  s$Parameter <- gsub("R0", "$R_{0\\\\mathrm{b}}$", s$Parameter)
+  s
+}
+purrr::map_dfr(fits, get_stats, .id = "Region") %>%
+  knitr::kable(format = "latex", digits = c(0, 0, 2, 2, 2, 2, 0, 2), escape = FALSE, table.envir = "table", booktabs = TRUE, longtable = TRUE,
+    col.names = c("Region", "Parameter", "Mean", "2.5\\%", "50\\%", "97.5\\%", "ESS", "$\\hat{R}$"), linesep = c('', '', '', '', '', '', '\\addlinespace')) %>%
+  kableExtra::kable_styling(latex_options = c("repeat_header"))
+# knitr::kable(format = "pandoc", digits = c(0, 0, 2, 2, 2, 2, 0, 2))
+
 # observed_data is a list of tibbles, one for each region (jurisdiction)
 # fits is a list of fits, which are covidseir objects with all the info
 
