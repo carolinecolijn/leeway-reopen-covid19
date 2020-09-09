@@ -53,14 +53,14 @@ wa$value
 dat <- wa
 dat$daily_cases <- dat$value     # to save them
 # Data are noisy (looks to be a weekend effect), do three-day running average:
-dat <- dat %>%
-  dplyr::mutate(daily_cases_smooth = zoo::rollmean(value,
-    k = 3,
-    fill = NA
-  ))
-dat[1, "daily_cases_smooth"] <- mean(dat[1:2, ]$value) # Use two-day average
-#  for day 1, and for final day:
-dat[nrow(dat), "daily_cases_smooth"] <- mean(dat[(nrow(dat) - 1):nrow(dat), ]$value)
+# dat <- dat %>%
+#  dplyr::mutate(daily_cases_smooth = zoo::rollmean(value,
+#    k = 3,
+#    fill = NA
+#  ))
+# dat[1, "daily_cases_smooth"] <- mean(dat[1:2, ]$value) # Use two-day average
+# #  for day 1, and for final day:
+# dat[nrow(dat), "daily_cases_smooth"] <- mean(dat[(nrow(dat) - 1):nrow(dat), ]$value)
 # And for penultimate day due to NA's from dodgy data:
 # stopifnot(is.na(dat[nrow(dat)-1, ]$daily_cases_smooth))   # take out next line if this errors
 # dat[nrow(dat)-1, "daily_cases_smooth"] <- dat[nrow(dat), "daily_cases_smooth"] # mean of last two
@@ -77,6 +77,8 @@ dat <- dplyr::filter(dat, date <= ymd("2020-06-03"))
 
 fit_file <- file.path("data-generated/WA-fit.rds")
 
+plot(dat$value, type = "l")
+
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
@@ -86,16 +88,17 @@ if (!file.exists(fit_file)) {
     start_decline_prior = c(log(get_google_start("Washington", dat)), 0.1),
     end_decline_prior = c(log(get_google_end("Washington", dat)), 0.1),
     f_seg = make_f_seg(dat),
-    i0_prior = i0_PRIOR,
+    i0_prior = c(log(300), 0.5),
     N_pop = 7.6e6,
+    fit_type = "NUTS"
   )
   saveRDS(fit, fit_file)
 } else {
   fit <- readRDS(fit_file)
 }
 print(fit)
-# p <- covidseir::project_seir(fit, iter = 1:100)
-# covidseir::tidy_seir(p) %>%
-#   covidseir::plot_projection(wa) +
-#   scale_y_log10()
+p <- covidseir::project_seir(fit, iter = 1:100)
+covidseir::tidy_seir(p) %>%
+  covidseir::plot_projection(dat)# +
+  # scale_y_log10()
 
