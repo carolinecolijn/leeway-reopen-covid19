@@ -29,8 +29,8 @@ posterior_R0$.value <- getR0(posterior_R0$.value , m)
 
 g <- bind_rows(posterior_nonR0, posterior_R0) %>%
   mutate(.variable = factor(.variable,
-    levels = c("i0", "e", "R0", "start_decline",
-    "end_decline", "f1", "f2", "phi"))) %>%
+    levels = c("i0", "R0", "start_decline",
+    "end_decline", "f1", "f2", "e", "phi"))) %>%
   ggplot(aes(.value)) +
   geom_histogram() +
   facet_grid(region ~ .variable, scales = "free") +
