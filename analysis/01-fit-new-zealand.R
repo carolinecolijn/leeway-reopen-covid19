@@ -98,7 +98,9 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     iter = ITER,
     chains = CHAINS,
-    pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = covidseir:::get_ur(0.9, ud = 0.1), f0 = 1),
+    pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1,
+      ur = covidseir:::get_ur(0.9, ud = 0.1), f0 = 1),
+    e_prior = c(0.9, 0.05),
     i0_prior = c(log(0.01), 1), # setting to 0.001 worked before
     delay_shape = 1.53, # estimated
     delay_scale = 7.828, # estimated
