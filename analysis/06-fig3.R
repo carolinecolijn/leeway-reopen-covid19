@@ -17,10 +17,10 @@ tictoc::tic()
 projections_imp <-
   map_dfr(mults, function(.mult) {
     cat(.mult, "\n")
-    furrr::future_map2_dfr(fits, observed_data, function(.fit, .obs) {
-    # purrr::map2_dfr(fits, observed_data, function(.fit, .obs) {
+    purrr::map2_dfr(fits, observed_data, function(.fit, .obs) {
       map_dfr(imports, function(.import) {
-        days <- length(.obs$day)
+        cat(.obs$region[1], "\n")
+        days <- length(.fit$days)
         use_f1 <- f1_vs_f2$f1_lower[f1_vs_f2$region == .obs$region[1]]
         # be extra careful; first can make a big diff:
         .fit$stan_data$ode_control <- c(1e-09, 1e-08, 1e+08)
