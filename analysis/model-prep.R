@@ -5,8 +5,8 @@ library("covidseir")
 library("purrr")
 library("future")
 
-if (packageVersion("covidseir") < "0.0.0.9008") {
-  stop("packageVersion('covidseir') < '0.0.0.9008'.\n",
+if (packageVersion("covidseir") < "0.0.0.9010") {
+  stop("packageVersion('covidseir') < '0.0.0.9010'.\n",
   "Please install the latest version of the model:\n",
   "devtools::install_github('seananderson/covidseir')", call. = FALSE)
 }
@@ -39,6 +39,7 @@ ITER <- 500
 CHAINS <- 6
 SAMP_FRAC <- 0.2
 i0_PRIOR <- c(log(1), 1)
+TIME_INC <- 0.25
 
 goog_dat <- readr::read_csv("data-generated/start-end-google.csv")
 get_google_start <- function(.region, .dat) {
