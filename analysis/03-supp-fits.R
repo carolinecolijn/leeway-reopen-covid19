@@ -5,7 +5,7 @@ future::plan(future::multisession)
 # Look at fits: -------------------------------------------------------
 
 set.seed(274929)
-ITER_PROJ <- sample(seq_len(N_ITER), 250) # downsample for speed
+ITER_PROJ <- sample(seq_len(N_ITER), 200) # downsample for speed
 
 projections_multi <- furrr::future_map2(fits, observed_data, function(.x, .y) {
   days <- length(.y$day)
