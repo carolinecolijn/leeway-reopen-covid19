@@ -72,8 +72,8 @@ make_traceplot(fit)
 # proj_tidy <- covidseir::tidy_seir(proj)
 #
 # proj_tidy %>%
-# 	covidseir::plot_projection(DenmarkData)
+# 	covidseir::plot_projection(dat)
 #
 # proj_tidy %>%
-# 	covidseir::plot_projection(DenmarkData) +
+# 	covidseir::plot_projection(dat) +
 # 	scale_y_log10()
