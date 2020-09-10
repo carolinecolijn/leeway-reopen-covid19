@@ -28,34 +28,41 @@ i0_observed
 dat <- dplyr::filter(dat, date >= origin)
 dat$day <- seq_len(nrow(dat))
 
-dat$value <- dat$daily_cases_smooth
+# dat$value <- dat$daily_cases_smooth
+
 ggplot(dat, aes(date, value)) +
   geom_point()
 dat$value
 
 # remove last NA:
-dat <- dat[-nrow(dat), ]
+# dat <- dat[-nrow(dat), ]
 dat$value
 
 saveRDS(dat, file.path("data-generated/JP-dat.rds"))
 
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
+ggplot(dat, aes(date, value)) +
+  geom_point() +
+  geom_line()
+
 fit_file <- file.path("data-generated/JP-fit.rds")
 if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$value,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = c(log(i0_observed), 1),
+    i0_prior = c(log(60), 1),
     start_decline_prior = c(log(get_google_start("Japan", dat)), 0.1),
-    end_decline_prior = c(log(get_google_end("Japan", dat)), 0.1),
+    end_decline_prior = c(log(get_google_end("Japan", dat) - 7), 0.05),
     f_seg = make_f_seg(dat),
     # https://web.archive.org/web/20190606203315/http://www.stat.go.jp/english/data/jinsui/tsuki/index.html
     # https://www.destatis.de/EN/Themes/Society-Environment/Population/Current-Population/_node.html
     N_pop = 126e6,
+    seed = 12345,
+    # fit_type = "optimizing",
     chains = CHAINS,
-    seed = 2749278,
-    iter = ITER
+    iter = ITER,
+    control = list(max_treedepth = 20)
   )
   saveRDS(fit, fit_file)
 } else {
@@ -71,8 +78,8 @@ make_traceplot(fit)
 # proj_tidy <- covidseir::tidy_seir(proj)
 #
 # proj_tidy %>%
-# 	covidseir::plot_projection(DenmarkData)
+# 	covidseir::plot_projection(dat)
 #
 # proj_tidy %>%
-# 	covidseir::plot_projection(DenmarkData) +
+# 	covidseir::plot_projection(dat) +
 # 	scale_y_log10()
