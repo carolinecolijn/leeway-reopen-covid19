@@ -90,7 +90,9 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     i0_prior = c(log(300), 0.5),
     N_pop = 7.6e6,
-    fit_type = "NUTS"
+    fit_type = "NUTS",
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {

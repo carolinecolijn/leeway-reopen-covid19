@@ -58,7 +58,9 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
     N_pop = 21.48e6,
-    fit_type = "optimizing"
+    fit_type = "optimizing",
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {

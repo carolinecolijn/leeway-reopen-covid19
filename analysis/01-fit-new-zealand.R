@@ -104,7 +104,9 @@ if (!file.exists(fit_file)) {
     i0_prior = c(log(0.01), 1), # setting to 0.001 worked before
     delay_shape = 1.53, # estimated
     delay_scale = 7.828, # estimated
-    N_pop = 4951500
+    N_pop = 4951500,
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {

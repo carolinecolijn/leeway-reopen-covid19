@@ -104,7 +104,9 @@ if (!file.exists(fit_file)) {
     fit_type = "NUTS",
     init = "prior_random",
     control = list(adapt_delta = 0.9),
-    N_pop = 19.45e6
+    N_pop = 19.45e6,
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {

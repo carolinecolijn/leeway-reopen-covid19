@@ -69,7 +69,9 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     N_pop = 66.4e6,
     chains = CHAINS,
-    iter = ITER
+    iter = ITER,
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {

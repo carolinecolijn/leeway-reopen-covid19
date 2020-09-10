@@ -41,7 +41,10 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     N_pop = 5.1e6,
     chains = CHAINS,
-    iter = ITER
+    iter = ITER,
+    e_prior = c(0.8, 0.05),
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {
@@ -51,15 +54,69 @@ if (!file.exists(fit_file)) {
 print(fit)
 make_traceplot(fit)
 
-# Check fit -----------------------------------------------------------------
-# #
-# proj <- covidseir::project_seir(fit, iter = 1:150, forecast_days = 20)
+# # Check fit -----------------------------------------------------------------
+# # #
+# proj <- covidseir::project_seir(fit, iter = 1:100, forecast_days = 20)
 # proj_tidy <- covidseir::tidy_seir(proj, resample_y_rep = 150)
 # #
 # proj_tidy %>%
 #   covidseir::plot_projection(dat) +
 #   ggsidekick::theme_sleek() +
 #   facet_null()
+#
+# p1 <- project_seir(fit,
+#   forecast_days = 100,
+#   iter = 1:100,
+#   f_fixed_start = nrow(fit$daily_cases) + 20,
+#   f_fixed = rep(0.85, 81)
+# )
+# covidseir::tidy_seir(p1, resample_y_rep = 150) %>%
+#   covidseir::plot_projection(dat) +
+#   scale_y_log10()
+#
+#
+# p2 <- project_seir(fit,
+#   forecast_days = 30,
+#   iter = 1:100,
+#   f_fixed_start = nrow(fit$daily_cases) + 1,
+#   f_fixed = rep(0.85, 30)
+# )
+#
+# source("analysis/old_get_thresh.R")
+# source("analysis/old_project_seir.R")
+#
+# thresholds_old <- map(list(fit), old_get_thresh,
+#   iter = 1:200)
+# hist(thresholds_old[[1]])
+#
+# fit <- readRDS("data-generated/BC-fit.rds")
+# load_all("../covidseir/")
+# thresholds_new <- map(list(fit), covidseir::get_threshold,
+#   iter = 1:200)
+# hist(thresholds_new[[1]], breaks = 30, xlim = c(0.25, 0.6))
+#
+# thresholds_new_old <- map(list(fit), covidseir::get_threshold,
+#   iter = 1:200)
+# hist(thresholds_old[[1]], breaks = 30, xlim = c(0.25, 0.6))
+#
+# fit <- readRDS("data-generated/BC-fit.rds")
+# fit$stan_data$f_prior <- cbind(rep(2, 27), rep(3, 27))
+# fit$stan_data$ode_control <- c(1e-07, 1e-06, 1e+06)
+# fit$stan_data$S
+# thresholds3 <- map(list(fit), old_get_thresh, iter = 1:20)
+#
+# fit <- readRDS("data-generated/BC-fit.rds")
+# thresholds4 <- map(list(fit), covidseir::get_threshold, iter = 1:220)
+#
+# hist(thresholds3[[1]], breaks = 30, xlim = c(0.25, 0.6))
+# hist(thresholds4[[1]], breaks = 30, xlim = c(0.25, 0.6))
+#
+# thresholds5 <- map(list(fit2), covidseir::get_threshold, iter = 1:200)
+# hist(thresholds5[[1]], breaks = 30, xlim = c(0.25, 0.6))
+#
+# thresholds6 <- map(list(fit3), covidseir::get_threshold, iter = 1:200)
+# hist(thresholds6[[1]], breaks = 30, xlim = c(0.25, 0.6))
+
 # ggsave("~/Downloads/bc-test.svg", width = 5, height = 3.5)
 
 # proj_tidy %>%

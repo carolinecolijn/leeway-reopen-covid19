@@ -60,7 +60,9 @@ if (!file.exists(fit_file)) {
     end_decline_prior = c(log(get_google_end("California", dat)), 0.1),
     f_seg = make_f_seg(dat),
     i0_prior = i0_PRIOR,
-    N_pop = 39.51e6
+    N_pop = 39.51e6,
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
   saveRDS(fit, fit_file)
 } else {
