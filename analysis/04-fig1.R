@@ -5,8 +5,35 @@ future::plan(future::multisession)
 # Critical contact: ---------------------------
 
 set.seed(28492)
-ITER <- sample(seq_len(N_ITER), 400) # downsample for speed
-thresholds <- map(fits, covidseir::get_threshold, iter = ITER) # subroutine is parallel
+# ITER <- sample(seq_along(fits[[1]]$post$R0), 50) # downsample for speed
+ITER <- seq_len(300) # downsample for speed
+thresholds <- furrr::future_map(fits, ~ {
+  # be extra careful; first can make a big diff:
+  .x$stan_data$ode_control <- c(1e-09, 1e-08, 1e+08)
+  covidseir::get_threshold(.x,
+    iter = ITER, parallel = FALSE, fs = seq(0.3, 0.8, length.out = 4))
+}
+)
+
+# thresholds2 <- purrr::map(fits['BC'], covidseir::get_threshold,
+#   parallel = FALSE, fs = seq(0.3, 0.8, length.out = 3))
+
+# set.seed(28492)
+# ITER <- sample(seq_len(length(fit$post$R0)), 80)
+# thresholds_0.025 <- get_threshold(fit, iter = ITER)
+# f1_0.025 <- fit$post$f_s[ITER, 1]
+# f2_0.025 <- fit$post$f_s[ITER, 2]
+#
+# ITER <- sample(seq_len(length(fits$BC$post$R0)), 80)
+# thresholds <- get_threshold(fits$BC, iter = ITER)
+# f1 <- fits$BC$post$f_s[ITER, 1]
+# f2 <- fits$BC$post$f_s[ITER, 2]
+#
+# par(mfcol = c(2, 2))
+# hist(f1_0.025 / thresholds_0.025, xlim = c(0, 1.5));abline(v = 1, lty = 2)
+# hist(f2_0.025 / thresholds_0.025, xlim = c(0, 1.5));abline(v = 1, lty = 2)
+# hist(f1 / thresholds, xlim = c(0, 1.5));abline(v = 1, lty = 2)
+# hist(f2 / thresholds, xlim = c(0, 1.5));abline(v = 1, lty = 2)
 
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -18,13 +45,29 @@ ratios <- pmap_dfr(list(thresholds, f1, f2),
   .id = "region"
 )
 
+cor_test <- map2(f1, thresholds, cor)
+par(mfrow = c(4, 3), mar = c(0.1, 0.1, 0.1, 0.1))
+walk2(f1, thresholds, ~ plot(.x, .y))
+print(cor_test)
+stopifnot(all(unlist(cor_test) > 0.4))
+
+# f1_2 <- map(fits["BC"], ~ .x$post$f_s[ITER, 1])
+# f2_2 <- map(fits["BC"], ~ .x$post$f_s[ITER, 2])
+# ratios_2 <- pmap_dfr(list(thresholds2, f1_2, f2_2),
+#   ~ tibble(ratio1 = ..2 / ..1, ratio2 = ..3 / ..1),
+#   .id = "region"
+# )
+
 ratios %>%
+  group_by(region) %>%
+  slice(-c(1:50)) %>%
   mutate(check1 = ratio1 < 0.8, check2 = ratio2 < 0.8) %>%
   group_by(region) %>%
   summarise(p1 = mean(check1), p2 = mean(check2)) %>%
   arrange(desc(p1))
 
 f1_vs_f2 <- group_by(ratios, region) %>%
+  slice(-c(1:50)) %>%
   summarise(f1_lower = mean(ratio1) < mean(ratio2))
 saveRDS(f1_vs_f2, file = file.path(dg_folder, "f1_vs_f2.rds"))
 
@@ -35,7 +78,7 @@ set.seed(12893)
 ITER_PROJ <- sample(seq_len(N_ITER), 100)
 mults <- c(1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
 
-projections_fan <- map(mults, function(.mult) {
+projections_fan <- furrr::future_map(mults, function(.mult) {
   cat(.mult, "\n")
   out <- purrr::map2(fits, observed_data, function(.fit, .obs) {
     cat(.obs$region[1], "\n")
@@ -47,7 +90,8 @@ projections_fan <- map(mults, function(.mult) {
       forecast_days = PROJ,
       f_fixed_start = days + 1L,
       f_multi = rep(.mult, PROJ),
-      f_multi_seg = if (use_f1) 1L else 2L
+      f_multi_seg = if (use_f1) 1L else 2L,
+      parallel = FALSE
     )
   })
   cat("--------------------------", "\n")
@@ -55,10 +99,6 @@ projections_fan <- map(mults, function(.mult) {
 }) %>% set_names(as.character(mults))
 saveRDS(projections_fan, file = file.path(dg_folder, "projections-multi-fan.rds"))
 projections_fan <- readRDS(file.path(dg_folder, "projections-multi-fan.rds"))
-
-# for (i in mults) {
-#   projections_fan[[i]]$WA <- .projections_fan[[i]]$WA
-# }
 
 tidy_projections <- furrr::future_map(projections_fan, function(x) {
   map(x, function(y) {
@@ -83,6 +123,8 @@ tidy_projections2 <- map2(tidy_projections1, observed_data, function(pred, obs) 
 
 # set.seed(10)
 ratios_ordered <- ratios %>%
+  group_by(region) %>%
+  slice(-c(1:50)) %>%
   left_join(country_lookup) %>%
   # mutate(country = forcats::fct_shuffle(country)) %>%
   group_by(region) %>%
@@ -114,32 +156,38 @@ add_label <- function(letter, region, ymax) {
   )
 }
 
-violins <- ratios_ordered %>%
-  ggplot(aes(x = region_ordered, y = ratio1)) +
-  geom_hline(yintercept = 1, col = "grey70", lty = 2) +
-  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
-  coord_flip(ylim = c(0, 1.4), expand = FALSE) +
-  ggsidekick::theme_sleek() +
-  # scale_fill_brewer(palette = "Set3") +
-  scale_fill_manual(values = cols) +
-  # theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
-  theme(axis.title.y = element_blank(), legend.position = "none") +
-  labs(fill = "Region", y = "Threshold ratio")
-ggsave(file.path(fig_folder, "ratio-violins-f1.pdf"), width = 3.5, height = 6, plot = violins)
-violins <- violins + geom_violin(aes(fill = country, y = ratio2),
-  colour = "grey40",
-  lwd = 0.35, alpha = 0.35, lty = "22"
-)
-ggsave(file.path(fig_folder, "ratio-violins-both.pdf"), width = 3.5, height = 6, plot = violins)
+# violins <- ratios_ordered %>%
+#   ggplot(aes(x = region_ordered, y = ratio1)) +
+#   geom_hline(yintercept = 1, col = "grey70", lty = 2) +
+#   geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
+#   coord_flip(ylim = c(0, 1.4), expand = FALSE) +
+#   ggsidekick::theme_sleek() +
+#   # scale_fill_brewer(palette = "Set3") +
+#   scale_fill_manual(values = cols) +
+#   # theme(axis.title.y = element_blank(), legend.position = c(0.12, 0.15)) +
+#   theme(axis.title.y = element_blank(), legend.position = "none") +
+#   labs(fill = "Region", y = "Threshold ratio")
+# ggsave(file.path(fig_folder, "ratio-violins-f1.pdf"), width = 3.5, height = 6, plot = violins)
+# violins <- violins + geom_violin(aes(fill = country, y = ratio2),
+#   colour = "grey40",
+#   lwd = 0.35, alpha = 0.35, lty = "22"
+# )
+# ggsave(file.path(fig_folder, "ratio-violins-both.pdf"), width = 3.5, height = 6, plot = violins)
 
+# cut_off <- 0.001
 violins <- ratios_ordered %>%
+  group_by(region) %>%
+  # mutate(ratio1 = ifelse(ratio1 < quantile(ratio1, probs = cut_off) | ratio1 > quantile(ratio1, probs = 1-cut_off), NA, ratio1)) %>%
+  # mutate(ratio2 = ifelse(ratio2 < quantile(ratio2, probs = cut_off) | ratio2 > quantile(ratio2, probs = 1-cut_off), NA, ratio2)) %>%
+  mutate(ratio1 = ifelse(ratio1 <= min(ratio1) | ratio1 >= max(ratio1), NA, ratio1)) %>%
+  mutate(ratio2 = ifelse(ratio2 <= min(ratio2) | ratio2 >= max(ratio2), NA, ratio2)) %>%
   ggplot(aes(x = region_ordered, y = ratio1)) +
   geom_violin(aes(fill = country, y = ratio2),
     colour = "grey40",
     lwd = 0.35, alpha = 0.35, lty = "22"
   ) +
   geom_hline(yintercept = 1, col = "grey70", lty = 2) +
-  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1) +
+  geom_violin(aes(fill = country), colour = "grey40", lwd = 0.35, alpha = 1, na.rm = TRUE) +
   coord_flip(ylim = c(0, 1.4), expand = FALSE) +
   ggsidekick::theme_sleek() +
   scale_fill_manual(values = cols) +
