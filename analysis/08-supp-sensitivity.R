@@ -59,20 +59,21 @@ sens_fits[[3]] <-
     # fit_type = "optimizing",
     control = list(adapt_delta = 0.95)
   )
-sens_fits[[4]] <- covidseir::fit_seir( # regular fit
-  daily_cases = dat$value,
-  samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-  i0_prior = c(log(5), 1),
-  start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
-  end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
-  f_seg = make_f_seg(dat),
-  N_pop = 83e6,
-  pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
-  chains = CHAINS,
-  iter = SENS_ITER,
-  # fit_type = "optimizing",
-  control = list(adapt_delta = 0.95)
-)
+# sens_fits[[4]] <- covidseir::fit_seir( # regular fit
+#   daily_cases = dat$value,
+#   samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
+#   i0_prior = c(log(5), 1),
+#   start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
+#   end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
+#   f_seg = make_f_seg(dat),
+#   N_pop = 83e6,
+#   pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
+#   chains = CHAINS,
+#   iter = SENS_ITER,
+#   # fit_type = "optimizing",
+#   control = list(adapt_delta = 0.95)
+# )
+sens_fits[[4]] <- fits$DE
 
 saveRDS(sens_fits, file = file.path(dg_folder, "fit-sens.rds"))
 sens_fits <- readRDS(file.path(dg_folder, "fit-sens.rds"))
