@@ -46,8 +46,6 @@ tictoc::toc()
 future::plan(future::sequential)
 saveRDS(projections_imp, file = file.path(dg_folder, "projections-multi-imp1.rds"))
 projections_imp <- readRDS(file.path(dg_folder, "projections-multi-imp1.rds"))
-projections_imp <- filter(projections_imp, !region %in% c("MI", "FL"))
-projections_imp <- mutate(projections_imp, region = ifelse(region == "SWE", "SE", region))
 
 R <- projections_imp %>%
   filter(time %in% round_time) %>%
