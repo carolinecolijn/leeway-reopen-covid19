@@ -68,8 +68,8 @@ dat$daily_cases <- dat$value     # to save them
 # stopifnot(is.na(dat[76, ]$daily_cases_smooth))   # take out next line if this errors
 # dat[76, "daily_cases_smooth"] <- mean(dat[75:76, ]$daily_cases)  # 77 is NA
 
-dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
-dat$value
+# dat$value <- round(dat$daily_cases_smooth) # Use rounded value for fitting and plotting
+# dat$value
 plot(dat$day, dat$value, type = "o")
 
 saveRDS(dat, file = file.path("data-generated/WA-dat.rds"))
