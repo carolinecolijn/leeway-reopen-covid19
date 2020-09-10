@@ -59,7 +59,7 @@ if (!file.exists(fit_file)) {
     f_seg = make_f_seg(dat),
     N_pop = 11.46e6,
     chains = CHAINS,
-    iter = ITER
+    iter = ITER,
     # fit_type = "optimizing"
     fit_type = "NUTS"
   )
