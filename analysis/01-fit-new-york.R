@@ -116,9 +116,9 @@ make_traceplot(fit)
 
 # Check fit -----------------------------------------------------------------
 
-# p <- covidseir::project_seir(ny_fit, iter = 1:100)
+# p <- covidseir::project_seir(fit, iter = 1:10)
 # covidseir::tidy_seir(p) %>%
-#   covidseir::plot_projection(new_york)
+#   covidseir::plot_projection(dat)
 #
 # saveRDS(ny_fit, file = here::here("data-generated/NY-fit.rds"))
 # saveRDS(new_york, file = here::here("data-generated/NY-dat.rds"))
