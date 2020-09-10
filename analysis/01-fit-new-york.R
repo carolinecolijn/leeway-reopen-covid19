@@ -13,7 +13,9 @@ d <- readr::read_csv(file.path("data-raw/US.csv"))
 d$date <- lubridate::ymd(d$date)
 
 new_york <- dplyr::filter(d, state %in% "NY") %>%
-  select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease) %>%
+  select(date, positiveIncrease, totalTestResultsIncrease, hospitalizedIncrease)
+
+new_york <- new_york %>%
   dplyr::filter(date >= ymd("2020-03-05")) %>%
   rename(value = positiveIncrease, tests = totalTestResultsIncrease, hospitalized = hospitalizedIncrease) %>%
   arrange(date) %>%
@@ -59,8 +61,8 @@ plot(new_york$date, new_york$value, type = "l")
 lines(new_york$date, new_york$hospitalized, col = "red")
 lines(new_york$date, new_york$tests / 10, col = "blue")
 
-.s <- as.numeric(ymd("2020-03-13") - min(new_york$date))
-.e <- as.numeric(ymd("2020-03-28") - min(new_york$date))
+# .s <- as.numeric(ymd("2020-03-13") - min(new_york$date))
+# .e <- as.numeric(ymd("2020-03-28") - min(new_york$date))
 
 # g <- readr::read_csv("https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=722f3143b586a83f")
 # g1 <- filter(g, country_region == "United States")
@@ -79,6 +81,8 @@ dat <- new_york
 saveRDS(dat, file.path("data-generated/NY-dat.rds"))
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
+ggplot(dat, aes(day, value)) +
+  geom_point() + geom_line()
 
 # Fit model -----------------------------------------------------------------
 
@@ -93,11 +97,13 @@ if (!file.exists(fit_file)) {
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
     iter = ITER,
     chains = CHAINS,
-    start_decline_prior = c(log(get_google_start("New York", dat)), 0.1), # c(log(.s), 0.2),
-    end_decline_prior = c(log(get_google_end("New York", dat)), 0.1),     # c(log(.e), 0.2),
+    start_decline_prior = c(log(get_google_start("New York", dat)), 0.1),
+    end_decline_prior = c(log(get_google_end("New York", dat)), 0.1),
     f_seg = make_f_seg(dat),
-    i0_prior = i0_PRIOR,
-    seed = 129284,
+    i0_prior = c(log(1), 1),
+    fit_type = "NUTS",
+    init = "prior_random",
+    control = list(adapt_delta = 0.9),
     N_pop = 19.45e6
   )
   saveRDS(fit, fit_file)
