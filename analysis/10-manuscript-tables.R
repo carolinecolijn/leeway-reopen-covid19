@@ -15,16 +15,16 @@ get_stats <- function(x) {
   s$Parameter <- gsub("phi\\[1\\]", "$\\\\phi$", s$Parameter)
   s$Parameter <- gsub("f_s\\[1\\]", "$f_1$", s$Parameter)
   s$Parameter <- gsub("f_s\\[2\\]", "$f_2$", s$Parameter)
-  s$Parameter <- gsub("i0", "$I_0$", s$Parameter)
-  s$Parameter <- gsub("e", "$e$", s$Parameter)
-  s$Parameter <- gsub("start_decline", "$t_1$", s$Parameter)
-  s$Parameter <- gsub("end_decline", "$t_2$", s$Parameter)
-  s$Parameter <- gsub("R0", "$R_{0\\\\mathrm{b}}$", s$Parameter)
+  s$Parameter <- gsub("^i0$", "$I_0$", s$Parameter)
+  s$Parameter <- gsub("^e$", "$e$", s$Parameter)
+  s$Parameter <- gsub("^start_decline$", "$t_1$", s$Parameter)
+  s$Parameter <- gsub("^end_decline$", "$t_2$", s$Parameter)
+  s$Parameter <- gsub("^R0$", "$R_{0\\\\mathrm{b}}$", s$Parameter)
   s
 }
 purrr::map_dfr(fits, get_stats, .id = "Region") %>%
   knitr::kable(format = "latex", digits = c(0, 0, 2, 2, 2, 2, 0, 2), escape = FALSE, table.envir = "table", booktabs = TRUE, longtable = TRUE,
-    col.names = c("Region", "Parameter", "Mean", "2.5\\%", "50\\%", "97.5\\%", "ESS", "$\\hat{R}$"), linesep = c('', '', '', '', '', '', '\\addlinespace')) %>%
+    col.names = c("Region", "Parameter", "Mean", "2.5\\%", "50\\%", "97.5\\%", "ESS", "$\\hat{R}$"), linesep = c('', '', '', '', '', '', '', '\\addlinespace')) %>%
   kableExtra::kable_styling(latex_options = c("repeat_header"))
 # knitr::kable(format = "pandoc", digits = c(0, 0, 2, 2, 2, 2, 0, 2))
 
@@ -61,8 +61,9 @@ details <- tibble::tibble(
     "Data start",
     "Data end",
     "Prior mean for $t_1$",
+    "Prior SD for $t_1$",
     "Prior mean for $t_2$",
-    "Prior sd for $t_1$ and $t_2$",
+    "Prior SD for $t_2$",
     "Prior mean for $e$",
     "Delay shape",
     "Delay scale",
@@ -74,10 +75,11 @@ details <- tibble::tibble(
 
 # Fill in a column for each REGION
 for (i in 1:length(REGIONS)) {
-  testthat::expect_equal(
-    fits[[i]]$stan_data$start_decline_prior[2],
-    fits[[i]]$stan_data$end_decline_prior[2]
-  ) # need both separately if this fails
+ # if (
+ #    fits[[i]]$stan_data$start_decline_prior[2] !=
+ #    fits[[i]]$stan_data$end_decline_prior[2]
+ #  ) # need both separately if this fails
+ #   warning("CHECK SDs of decline priors; they don't match.")
   details <- details %>%
     dplyr::mutate(!!REGIONS[i] := c(
       paste(
@@ -103,6 +105,7 @@ for (i in 1:length(REGIONS)) {
         lubridate::day(exp(fits[[i]]$start_decline_prior)[1]
         + min(observed_data[[i]]$date))
       ),
+      fits[[i]]$stan_data$start_decline_prior[2],
       paste(
         lubridate::month(exp(fits[[i]]$end_decline_prior)[1]
         + min(observed_data[[i]]$date),
