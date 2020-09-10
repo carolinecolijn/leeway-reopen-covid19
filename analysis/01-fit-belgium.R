@@ -15,6 +15,8 @@ dat <- data %>%
 dat$day <- seq_len(nrow(dat))
 names(dat) <- c("date", "daily_cases", "day")
 # Pick a reasonable starting date:
+
+i0_cases <- filter(dat, date < ymd("2020-03-03")) %>% pull(daily_cases) %>% sum()
 dat <- dplyr::filter(dat, date >= ymd("2020-03-03"))
 dat$day <- seq_len(nrow(dat))
 
@@ -38,7 +40,7 @@ saveRDS(dat, file.path("data-generated/BE-dat.rds"))
 dat <- dplyr::filter(dat, date <= ymd("2020-06-07"))
 
 ggplot(dat, aes(date, daily_cases)) +
-  geom_bar(stat = "identity")
+  geom_point() + geom_line()
 
 # Fit model -----------------------------------------------------------------
 
@@ -51,15 +53,15 @@ if (!file.exists(fit_file)) {
   fit <- covidseir::fit_seir(
     daily_cases = dat$daily_cases,
     samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = i0_PRIOR,
+    i0_prior = c(log(i0_cases), 1),
     start_decline_prior = c(log(get_google_start("Belgium", dat)), 0.1),
-                                            # = log(8), original was log(9)
     end_decline_prior = c(log(get_google_end("Belgium", dat)), 0.1),
-                                            # = log(18), original was log(17)
     f_seg = make_f_seg(dat),
     N_pop = 11.46e6,
     chains = CHAINS,
     iter = ITER
+    # fit_type = "optimizing"
+    fit_type = "NUTS"
   )
   saveRDS(fit, fit_file)
 } else {
