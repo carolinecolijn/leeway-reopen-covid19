@@ -29,7 +29,7 @@ this_folder <- "."
 
 make_traceplot <- function(fit) {
   rstan::traceplot(fit$fit,
-    pars = c("R0", "i0", "f_s", "start_decline", "end_decline", "phi"))
+    pars = c("R0", "i0", "f_s", "start_decline", "end_decline", "phi", "e"))
 }
 
 ymd <- lubridate::ymd
