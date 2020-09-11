@@ -4,60 +4,67 @@ future::plan(future::multisession)
 
 # Critical contact sensitivity: ---------------------------
 
-dat <- observed_data$DE
+dat <- observed_data$BC
 SAMP_FRAC <- 0.2
-SENS_ITER <- 300
+SENS_ITER <- 220
 
 plot(dat$date, dat$value)
-dat <- dplyr::filter(dat, day %in% fits$DE$days)
+dat <- dplyr::filter(dat, day %in% fits$BC$days)
 plot(dat$date, dat$value)
+
+samp_frac <- c(rep(0.14, 13), rep(0.21, 40 - 13), rep(0.21, 11))
+samp_frac <- c(samp_frac, rep(0.37, nrow(dat) - length(samp_frac)))
+samp_frac
 
 sens_fits <- list()
 sens_fits[[1]] <-
   covidseir::fit_seir(
     daily_cases = dat$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = c(log(5), 1),
-    start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
-    end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
+    samp_frac_fixed = samp_frac, # from hospital fit
+    i0_prior = c(log(8), 1),
+    start_decline_prior = c(log(15), 0.1),
+    end_decline_prior = c(log(22), 0.1),
     f_seg = make_f_seg(dat),
-    N_pop = 83e6,
-    pars = c(D = 4, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
+    N_pop = 5.1e6,
     chains = CHAINS,
     iter = SENS_ITER,
-    # fit_type = "optimizing",
-    control = list(adapt_delta = 0.95)
+    pars = c(D = 4, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
+    e_prior = c(0.8, 0.05),
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
+
 sens_fits[[2]] <-
   covidseir::fit_seir(
     daily_cases = dat$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = c(log(5), 1),
-    start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
-    end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
+    samp_frac_fixed = samp_frac, # from hospital fit
+    i0_prior = c(log(8), 1),
+    start_decline_prior = c(log(15), 0.1),
+    end_decline_prior = c(log(22), 0.1),
     f_seg = make_f_seg(dat),
-    N_pop = 83e6,
-    pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = covidseir:::get_ur(0.7, 0.1), f0 = 1),
-    e_prior = c(0.7, 0.05),
+    N_pop = 5.1e6,
     chains = CHAINS,
     iter = SENS_ITER,
-    # fit_type = "optimizing",
-    control = list(adapt_delta = 0.95)
+    pars = c(D = 5, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = covidseir:::get_ur(0.7, 0.1), f0 = 1),
+    e_prior = c(0.7, 0.1),
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
 sens_fits[[3]] <-
   covidseir::fit_seir(
     daily_cases = dat$value,
-    samp_frac_fixed = rep(SAMP_FRAC, nrow(dat)),
-    i0_prior = c(log(5), 1),
-    start_decline_prior = c(log(get_google_start("Germany", dat)), 0.1),
-    end_decline_prior = c(log(get_google_end("Germany", dat)), 0.1),
+    samp_frac_fixed = samp_frac, # from hospital fit
+    i0_prior = c(log(8), 1),
+    start_decline_prior = c(log(15), 0.1),
+    end_decline_prior = c(log(22), 0.1),
     f_seg = make_f_seg(dat),
-    N_pop = 83e6,
-    pars = c(D = 6, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
+    N_pop = 5.1e6,
     chains = CHAINS,
     iter = SENS_ITER,
-    # fit_type = "optimizing",
-    control = list(adapt_delta = 0.95)
+    pars = c(D = 6, k1 = 1/5, k2 = 1, q = 0.05, ud = 0.1, ur = 0.02, f0 = 1),
+    e_prior = c(0.8, 0.05),
+    ode_control = c(1e-07, 1e-06, 1e+06),
+    time_increment = TIME_INC
   )
 # sens_fits[[4]] <- covidseir::fit_seir( # regular fit
 #   daily_cases = dat$value,
@@ -73,7 +80,7 @@ sens_fits[[3]] <-
 #   # fit_type = "optimizing",
 #   control = list(adapt_delta = 0.95)
 # )
-sens_fits[[4]] <- fits$DE
+sens_fits[[4]] <- fits$BC
 
 saveRDS(sens_fits, file = file.path(dg_folder, "fit-sens.rds"))
 sens_fits <- readRDS(file.path(dg_folder, "fit-sens.rds"))
