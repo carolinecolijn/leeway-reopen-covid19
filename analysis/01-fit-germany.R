@@ -56,7 +56,7 @@ if (!file.exists(fit_file)) {
     # https://www.destatis.de/EN/Themes/Society-Environment/Population/Current-Population/_node.html
     chains = CHAINS,
     iter = ITER,
-    control = list(adapt_delta = 0.95),
+    control = list(adapt_delta = 0.9),
     ode_control = c(1e-07, 1e-06, 1e+06),
     time_increment = TIME_INC
   )
