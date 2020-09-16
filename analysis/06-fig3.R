@@ -15,7 +15,7 @@ f1_vs_f2 <- readRDS(file.path(dg_folder, "f1_vs_f2.rds"))
 future::plan(future::multisession)
 tictoc::tic()
 projections_imp <-
-  map_dfr(mults, function(.mult) {
+  furrr::future_map_dfr(mults, function(.mult) {
     cat(.mult, "\n")
     purrr::map2_dfr(fits, observed_data, function(.fit, .obs) {
       map_dfr(imports, function(.import) {

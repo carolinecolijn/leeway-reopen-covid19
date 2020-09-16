@@ -8,18 +8,18 @@ set.seed(28492)
 # ITER <- sample(seq_along(fits[[1]]$post$R0), 50) # downsample for speed
 ITER <- seq_len(250) # downsample for speed
 
-pdf("figs/threshold-linear-check.pdf", width = 14, height = 10)
-par(mfrow = c(3, 4), mar = c(1.5, 1.5, 1.5, 1.5), cex = 0.75)
 tictoc::tic()
+# pdf("figs/threshold-linear-check.pdf", width = 14, height = 10)
+# par(mfrow = c(3, 4), mar = c(1.5, 1.5, 1.5, 1.5), cex = 0.75)
+# thresholds <- purrr::map(fits, ~ {
 thresholds <- furrr::future_map(fits, ~ {
   # be extra careful:
   .x$stan_data$ode_control <- c(1e-08, 1e-07, 1e+07)
   covidseir::get_threshold(.x,
     iter = ITER, parallel = FALSE, fs = seq(0.3, 0.8, length.out = 4))
-}
-)
+})
+# dev.off()
 tictoc::toc()
-dev.off()
 
 saveRDS(thresholds, file = file.path(dg_folder, "contact-ratio-thresholds.rds"))
 thresholds <- readRDS(file.path(dg_folder, "contact-ratio-thresholds.rds"))
@@ -41,12 +41,15 @@ walk2(f1, thresholds, ~ plot(.x, .y))
 print(cor_test)
 stopifnot(all(unlist(cor_test) > 0.4))
 
+sink("figs/ratios-prob.txt")
 ratios %>%
   group_by(region) %>%
   mutate(check1 = ratio1 < 0.8, check2 = ratio2 < 0.8) %>%
   group_by(region) %>%
-  summarise(p1 = mean(check1), p2 = mean(check2)) %>%
-  arrange(desc(p1))
+  summarise(p1 = mean(check1), p2 = mean(check2), .groups = "drop_last") %>%
+  arrange(desc(p1)) %>%
+  knitr::kable()
+sink()
 
 f1_vs_f2 <- group_by(ratios, region) %>%
   slice(-c(1:50)) %>%
