@@ -28,7 +28,7 @@ dat1 <- dat %>%
   select(date, daily_cases = daily_cases, day) %>%
   mutate(daily_cases_smooth = zoo::rollmean(daily_cases, k = 3, fill = NA))
 
-dat$daily_cases <- round(dat1$daily_cases_smooth)
+# dat$daily_cases <- round(dat1$daily_cases_smooth)
 dat$value <- dat$daily_cases
 
 if (is.na(dat$daily_cases[nrow(dat)])) {

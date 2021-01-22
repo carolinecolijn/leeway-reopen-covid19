@@ -28,7 +28,7 @@ i0_observed
 dat <- dplyr::filter(dat, date >= origin)
 dat$day <- seq_len(nrow(dat))
 
-dat$value <- dat$daily_cases_smooth
+# dat$value <- dat$daily_cases_smooth
 ggplot(dat, aes(date, value)) +
   geom_point()
 dat$value
