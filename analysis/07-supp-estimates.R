@@ -68,7 +68,7 @@ make_post_prior_plot <- function(posterior_dat, prior_dat = NULL, vars) {
     mutate(.variable = factor(.variable,
       levels = c("i0", "R0", "start_decline",
         "end_decline", "f1", "f2", "e", "phi")))
-  posterior_dat %>%
+  g <- posterior_dat %>%
     ggplot(aes(x = .value)) +
     geom_histogram(aes(y = ..density..), bins = 35L, fill = "grey55") +
     facet_grid(region ~ .variable, scales = "free") +
@@ -109,5 +109,5 @@ g_phi <- make_post_prior_plot(
 g <- cowplot::plot_grid(g_i0, g_R0, g_decline, g_ef, g_phi, nrow = 1L,
   rel_widths = c(1, 1, 1.5, 1.85, 1))
 
-ggsave(file.path(fig_folder, "parameter-estimates.pdf"), width = 12, height = 10, plot = g)
-ggsave(file.path(fig_folder, "parameter-estimates.png"), width = 12, height = 10, plot = g)
+ggsave(file.path(fig_folder, "parameter-estimates.pdf"), width = 14, height = 10.5, plot = g)
+ggsave(file.path(fig_folder, "parameter-estimates.png"), width = 14, height = 10.5, plot = g)
