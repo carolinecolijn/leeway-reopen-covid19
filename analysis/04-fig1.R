@@ -1,6 +1,6 @@
 source("analysis/model-prep.R")
 source("analysis/projection-prep.R")
-future::plan(future::multisession, workers = 12)
+future::plan(future::multisession, workers = 6L)
 
 # Critical contact: ---------------------------
 
@@ -39,7 +39,7 @@ cor_test <- map2(f1, thresholds, cor)
 par(mfrow = c(4, 3), mar = c(0.1, 0.1, 0.1, 0.1))
 walk2(f1, thresholds, ~ plot(.x, .y))
 print(cor_test)
-stopifnot(all(unlist(cor_test) > 0.4))
+stopifnot(all(unlist(cor_test) > 0.26))
 
 sink("figs/ratios-prob.txt")
 ratios %>%
