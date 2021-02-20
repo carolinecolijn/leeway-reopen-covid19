@@ -158,8 +158,8 @@ thresholds_sens <- map(sens_fits2, covidseir::get_threshold, iter = ITER)
 saveRDS(thresholds_sens, file = file.path(dg_folder, "contact-ratio-thresholds-sens2.rds"))
 thresholds_sens <- readRDS(file.path(dg_folder, "contact-ratio-thresholds-sens2.rds"))
 
-names(sens_fits2) <- c("delay_shape = 9.85", "delay_shape = 5")
-names(thresholds_sens) <- c("delay_shape = 9.85", "delay_shape = 5")
+names(sens_fits2) <- c("delay_scale = 9.85", "delay_scale = 5")
+names(thresholds_sens) <- c("delay_scale = 9.85", "delay_scale = 5")
 
 p <- map(sens_fits2, project_seir)
 g1 <- tidy_seir(p[[1]]) %>% plot_projection(obs_dat = observed_data[["BC"]],
@@ -179,13 +179,13 @@ posterior <- purrr::map_dfr(sens_fits2, function(x) {
     select(-i)
   bind_rows(post_tidy, post_tidy_f) %>%
     bind_rows(phi)
-}, .id = "delay_shape")
+}, .id = "delay_scale")
 
 g <- posterior %>%
   mutate(.variable = factor(.variable,
     levels = c("i0", "R0", "start_decline",
       "end_decline", "f1", "f2", "e", "phi"))) %>%
-  ggplot(aes(.value, fill = delay_shape)) + geom_density(alpha = 0.6) +
+  ggplot(aes(.value, fill = delay_scale)) + geom_density(alpha = 0.6) +
   facet_wrap(~.variable, scales = "free") +
   scale_fill_brewer(palette = "Set1") +
   scale_y_continuous(expand = expansion(mult = c(0, .1))) +
@@ -225,7 +225,7 @@ g
 # ggsave(file.path(fig_folder, "sens-ratios-delay-violin.pdf"), width = 5, height = 5, plot = g)
 # ggsave(file.path(fig_folder, "sens-ratios-delay-violin.png"), width = 5, height = 5, plot = g)
 
-gg <- cowplot::plot_grid(g1 + ggtitle("delay_shape = 9.85"), g2 + ggtitle("delay_shape = 5"), ncol = 1)
+gg <- cowplot::plot_grid(g1 + ggtitle("delay_scale = 9.85"), g2 + ggtitle("delay_scale = 5"), ncol = 1)
 cowplot::plot_grid(gg, g, rel_widths = c(1, 1.3))
 
 ggsave(file.path(fig_folder, "sens-proj-ratios-delay.png"), width = 8, height = 5)
