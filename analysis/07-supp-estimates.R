@@ -25,7 +25,7 @@ getR0 <- function(R0b, fit) {
 
 posterior_nonR0 <- filter(posterior,!.variable == 'R0')
 posterior_R0 <- filter(posterior,.variable == 'R0')
-posterior_R0$.value <- getR0(posterior_R0$.value , m)
+# posterior_R0$.value <- getR0(posterior_R0$.value , m)
 
 # Informative priors to get:
 # i0, R0, start_decline, end_decline, f1, f2, e
@@ -66,7 +66,7 @@ priors <- map_dfr(names(fits), function(i) {
 make_post_prior_plot <- function(posterior_dat, prior_dat = NULL, vars) {
   posterior_dat <- posterior_dat %>%
     mutate(.variable = factor(.variable,
-      levels = c("i0", "R0", "start_decline",
+      levels = c("i0", "R0b", "start_decline",
         "end_decline", "f1", "f2", "e", "phi")))
   g <- posterior_dat %>%
     ggplot(aes(x = .value)) +
@@ -79,12 +79,15 @@ make_post_prior_plot <- function(posterior_dat, prior_dat = NULL, vars) {
   if (!is.null(prior_dat)) {
     prior_dat <- prior_dat %>%
       mutate(.variable = factor(.variable,
-        levels = c("i0", "R0", "start_decline",
+        levels = c("i0", "R0b", "start_decline",
           "end_decline", "f1", "f2", "e", "phi")))
     g <- g + geom_line(aes(x = prior_x, y = prior_density), data = prior_dat, inherit.aes = FALSE, lty = 1)
   }
   g
 }
+
+posteriors$.variable[posteriors$.variable == "R0"] <- "R0b"
+priors$.variable[priors$.variable == "R0"] <- "R0b"
 
 g_ef <- make_post_prior_plot(
   filter(posteriors, .variable %in% c("e", "f1", "f2")),
@@ -95,8 +98,8 @@ g_decline <- make_post_prior_plot(
   filter(priors, .variable %in% c('start_decline', 'end_decline'))
 )
 g_R0 <- make_post_prior_plot(
-  filter(posteriors, .variable %in% c('R0')),
-  filter(priors, .variable %in% c('R0'))
+  filter(posteriors, .variable %in% c('R0b')),
+  filter(priors, .variable %in% c('R0b'))
 )
 g_i0 <- make_post_prior_plot(
   filter(posteriors, .variable %in% c('i0')),
