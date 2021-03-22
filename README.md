@@ -18,5 +18,5 @@ remotes::install_github("seananderson/ggsidekick")
 Follow the C++ compiler [installation instructions for rstan and covidseir](https://github.com/seananderson/covidseir) carefully first, then run:
 
 ```r
-remotes::install_github("seananderson/covidseir", ref = "3828e6f")
+remotes::install_github("seananderson/covidseir", ref = "4de2abb")
 ```
