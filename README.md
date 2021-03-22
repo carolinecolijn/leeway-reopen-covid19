@@ -6,7 +6,7 @@ Anderson, S.C., Mulberry, N., Edwards, A.M., Stockdale, J.E., Iyaniwura, S.A., F
 
 The main statistical model is written in [Stan](https://mc-stan.org/) and fit with the package [covidseir](https://github.com/seananderson/covidseir).
 
-The analysis can be reproduced by running the numbered R files in the [`analysis`](analysis) folder. Note that the model fits and some projections will take some time (~10--30 minutes per model and ~1 hour for all the projections). Only rerun `00-cache-data.R` and `00-mobility-segments.R` if you want to update the data. Our cached data is already available in this repository.
+The analysis can be reproduced by running the numbered R files in the [`analysis`](analysis) folder. Note that the model fits and some projections will take some time (~10-30 minutes per model and ~1 hour for all the projections). Only rerun `00-cache-data.R` and `00-mobility-segments.R` if you want to update the data. Our cached data is already available in this repository.
 
 You will need the following packages installed:
 
