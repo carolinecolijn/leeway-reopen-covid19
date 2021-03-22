@@ -1,6 +1,7 @@
 ## How much leeway is there to relax COVID-19 control measures?
 
 This repository contains code associated with the paper:
+
 Anderson, S.C., Mulberry, N., Edwards, A.M., Stockdale, J.E., Iyaniwura, S.A., Falcao, R.C., Otterstatter, M.C., Janjua, N.Z., Coombs, D., and Colijn, C. 2021. How much leeway is there to relax COVID-19 control measures? Epidemics: 100453. doi:[10.1016/j.epidem.2021.100453](https://doi.org/10.1016/j.epidem.2021.100453).
 
 The main statistical model is written in [Stan](https://mc-stan.org/) and fit with the package [covidseir](https://github.com/seananderson/covidseir).
